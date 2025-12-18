@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPanicSupport } from "@/lib/gemini";
+import connectDB from "@/lib/mongodb";
+import { PanicEvent } from "@/lib/models";
 
 /**
  * POST /api/panic
@@ -13,7 +15,7 @@ import { getPanicSupport } from "@/lib/gemini";
  * Response:
  * - message: string (short, calming reassurance - max 2 sentences)
  * 
- * TODO: Store panic events in database for analytics
+ * Uses MongoDB to store panic events
  * TODO: Add rate limiting to prevent abuse
  */
 
@@ -30,20 +32,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Connect to database
+    await connectDB();
+
     // Call Gemini API for supportive message
     const contextString = context || `User activated panic button (${triggerType})`;
     const support = await getPanicSupport(contextString);
 
-    // TODO: Save panic event to database
-    /*
-    await db.panicEvents.create({
+    // Save panic event to MongoDB
+    await PanicEvent.create({
       userId,
-      triggerType,
-      context,
-      llmResponse: support,
-      timestamp: new Date(),
+      duration: 0,
+      completed: false,
     });
-    */
 
     console.log(`[Panic API] User ${userId} activated panic mode: ${triggerType}`);
 

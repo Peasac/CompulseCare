@@ -118,7 +118,161 @@ Provide ONLY the reflection text (no JSON, no formatting).`;
 }
 
 /**
- * Generate weekly insights based on user data
+ * Generate weekly reflection for /summary page (DETAILED analysis)
+ * @param summaryData - User's weekly aggregated stats
+ * @returns Structured reflection with patterns (WHY), what helped, and suggestion
+ */
+export async function generateWeeklyReflection(summaryData: {
+  totalCompulsions: number;
+  compulsionChange: number;
+  avgTimeSpent: number;
+  avgAnxiety: number;
+  targetCompletion: number;
+  journalEntries: number;
+  panicEpisodes: number;
+  mostCommonTrigger: string;
+}): Promise<{
+  patterns: string;
+  whatHelped: string;
+  suggestion: string;
+}> {
+  try {
+    const prompt = `You are a supportive, pattern-analysis assistant providing DETAILED weekly insights for someone managing compulsions and anxiety. This is for the main summary page where detailed analysis is appropriate.
+
+Weekly Aggregated Stats (DO NOT recalculate or repeat these numbers):
+- Total Compulsions: ${summaryData.totalCompulsions} (${summaryData.compulsionChange > 0 ? '+' : ''}${summaryData.compulsionChange}% vs last week)
+- Avg Time Spent: ${summaryData.avgTimeSpent} minutes
+- Avg Anxiety: ${summaryData.avgAnxiety}/10
+- Target Completion: ${summaryData.targetCompletion}%
+- Journal Entries: ${summaryData.journalEntries}
+- Pause Sessions: ${summaryData.panicEpisodes}
+- Most Common Trigger: ${summaryData.mostCommonTrigger}
+
+Generate a DETAILED Weekly Reflection with EXACTLY these 3 parts:
+
+1. "patterns" - Provide DETAILED explanation of WHY trends happened. Find correlations and explain the mechanism. This should be substantive (2-3 sentences). Example: "Your compulsions decreased on days when you used the pause button more frequently. The breathing exercises seem to create a buffer between the urge and the action, giving you time to make a different choice."
+
+2. "whatHelped" - Provide DETAILED analysis of what strategies made a difference and explain HOW they work. This should be thorough (2-3 sentences). Example: "Your journal entries show you're recognizing triggers earlier in the process. This awareness is giving you more time to respond intentionally rather than react automatically. The more you log, the earlier you notice."
+
+3. "suggestion" - Provide ONE specific, gentle, actionable suggestion with clear reasoning. Should be concrete and grounded in patterns (1-2 sentences). Example: "Try using the pause button at the first sign of a trigger, before the compulsion feels urgent. Early intervention seems to work best for your patterns."
+
+CRITICAL RULES:
+- THIS IS DETAILED ANALYSIS (not a glanceable hint)
+- Explain WHY and HOW, with depth
+- Find correlations between different data points
+- Be specific to this person's data
+- Use calm, supportive, non-clinical language
+- NO generic encouragement
+- NO medical advice or crisis language
+- Grounded in available data only
+
+Format as JSON:
+{
+  "patterns": "...",
+  "whatHelped": "...",
+  "suggestion": "..."
+}`;
+
+    const text = await callGemini(prompt);
+
+    // Try to parse JSON response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      if (parsed.patterns && parsed.whatHelped && parsed.suggestion) {
+        return parsed;
+      }
+    }
+
+    // Fallback reflection with detailed pattern analysis
+    const patternsText = summaryData.compulsionChange < 0 && summaryData.panicEpisodes > 5
+      ? `Your compulsions decreased on days when you used the pause button more frequently. The breathing exercises seem to create a buffer between the urge and the action, giving you time to make a different choice. This pattern suggests the pause sessions are disrupting the automatic compulsion cycle.`
+      : `Your most frequent compulsions appear after encountering ${summaryData.mostCommonTrigger} triggers. The consistency in this pattern means you can start preparing responses before the trigger occurs. Anticipating these moments gives you an advantage.`;
+
+    const whatHelpedText = summaryData.journalEntries > 4
+      ? `Your journal entries show you're recognizing triggers earlier in the process. This awareness is giving you more time to respond intentionally rather than react automatically. The more you log, the earlier you notice patterns emerging.`
+      : `Using pause sessions ${summaryData.panicEpisodes} times this week created natural breaks in compulsion cycles. Those breathing moments seem to interrupt the automatic response pattern, giving you space to choose differently.`;
+
+    const suggestionText = summaryData.targetCompletion > 70
+      ? `Try using the pause button at the first sign of a trigger, before the compulsion feels urgent. Early intervention seems to work best for your patterns based on this week's data.`
+      : `Focus on using the pause button for just one specific trigger this week. Mastering one pattern is more effective than trying to change everything at once.`;
+
+    return {
+      patterns: patternsText,
+      whatHelped: whatHelpedText,
+      suggestion: suggestionText,
+    };
+  } catch (error) {
+    console.error("Gemini API error:", error);
+    return {
+      patterns: "Your compulsions decreased on days when you used the pause button more frequently. The breathing exercises seem to create a buffer between the urge and the action, giving you time to make a different choice.",
+      whatHelped: "Your journal entries show you're recognizing triggers earlier in the process. This awareness is giving you more time to respond intentionally rather than react automatically.",
+      suggestion: "Try using the pause button at the first sign of a trigger, before the compulsion feels urgent. Early intervention seems to work best for your patterns.",
+    };
+  }
+}
+
+/**
+ * Generate dashboard AI snapshot - ONE short, tentative hint (glanceable)
+ * @param summaryData - User's weekly stats
+ * @returns Single tentative sentence (max 15 words)
+ */
+export async function generateDashboardSnapshot(summaryData: {
+  totalCompulsions: number;
+  compulsionChange: number;
+  panicEpisodes: number;
+  journalEntries: number;
+  targetCompletion: number;
+  avgAnxiety: number;
+}): Promise<string> {
+  try {
+    const prompt = `Generate ONE very short, tentative observation (max 15 words) based on this week's data. This is a GLANCEABLE HINT only, not detailed analysis.
+
+Weekly Stats:
+- Compulsions: ${summaryData.totalCompulsions} (${summaryData.compulsionChange > 0 ? '+' : ''}${summaryData.compulsionChange}% vs last week)
+- Pause Sessions: ${summaryData.panicEpisodes}
+- Journal Entries: ${summaryData.journalEntries}
+- Target Completion: ${summaryData.targetCompletion}%
+- Avg Anxiety: ${summaryData.avgAnxiety}/10
+
+CRITICAL RULES:
+- EXACTLY one sentence
+- Maximum 15 words
+- Tentative tone (use "seems", "might", "appears")
+- Glanceable hint, not explanation
+- NO advice, NO lists, NO explanations
+- Just note ONE correlation or trend
+
+Good examples:
+"Fewer compulsions on days with more pauses."
+"Anxiety seems lower when you journal regularly."
+"Compulsions dropped as pause sessions increased."
+
+Bad examples (too detailed):
+"Your compulsions dropped because you used pauses — keep it up."
+"Multiple patterns show improvement in several areas."
+
+Provide ONLY the short sentence (no quotes, no formatting).`;
+
+    const text = await callGemini(prompt);
+    
+    const cleaned = text.trim().replace(/^["']|["']$/g, '');
+    
+    // Enforce max 15 words
+    const words = cleaned.split(/\s+/);
+    if (words.length > 15) {
+      return words.slice(0, 15).join(' ') + '.';
+    }
+    
+    return cleaned || "Fewer compulsions on days with more pauses.";
+  } catch (error) {
+    console.error("Gemini API error:", error);
+    return "Fewer compulsions on days with more pauses.";
+  }
+}
+
+/**
+ * Generate weekly insights based on user data (legacy function)
  * @param summaryData - User's weekly stats
  * @returns AI-generated insights
  */

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import connectDB from "@/lib/mongodb";
+import Mood from "@/lib/models/Mood";
 
 /**
  * Mood Tracking API
@@ -6,30 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
  * POST /api/mood - Log a mood entry
  * GET /api/mood?userId=X - Fetch mood entries
  * 
- * TODO: Integrate with database
- * TODO: Add mood analytics (trends, patterns)
  */
-
-interface MoodEntry {
-  id: string;
-  userId: string;
-  emoji: string;
-  intensity: number; // 1-10
-  note?: string;
-  timestamp: string;
-}
-
-// Mock storage
-let mockMoodEntries: MoodEntry[] = [
-  {
-    id: "m1",
-    userId: "user123",
-    emoji: "😌",
-    intensity: 7,
-    note: "Finished a breathing exercise, feeling better",
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-  },
-];
 
 /**
  * POST /api/mood
@@ -55,27 +34,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const newEntry: MoodEntry = {
-      id: `m${Date.now()}`,
+    await connectDB();
+
+    const newEntry = await Mood.create({
       userId,
-      emoji,
+      mood: emoji,
       intensity,
-      note: note || undefined,
-      timestamp: timestamp || new Date().toISOString(),
-    };
-
-    // TODO: Save to database
-    /*
-    const savedEntry = await db.moodEntries.create({
-      data: newEntry,
+      notes: note,
+      createdAt: timestamp ? new Date(timestamp) : undefined,
     });
-    */
-
-    mockMoodEntries.unshift(newEntry);
 
     console.log(`[Mood API] Mood logged for user ${userId}: ${emoji} (${intensity}/10)`);
 
-    return NextResponse.json(newEntry, { status: 201 });
+    return NextResponse.json(
+      {
+        id: newEntry._id.toString(),
+        userId: newEntry.userId,
+        emoji: newEntry.mood,
+        intensity: newEntry.intensity,
+        note: newEntry.notes,
+        timestamp: newEntry.createdAt.toISOString(),
+      },
+      { status: 201 }
+    );
 
   } catch (error) {
     console.error("[Mood API POST] Error:", error);
@@ -103,23 +84,26 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // TODO: Fetch from database
-    /*
-    const entries = await db.moodEntries.findMany({
-      where: { userId },
-      orderBy: { timestamp: 'desc' },
-      take: limit,
-    });
-    */
+    await connectDB();
 
-    const userEntries = mockMoodEntries
-      .filter((entry) => entry.userId === userId)
-      .slice(0, limit);
+    const entries = await Mood.find({ userId } as any)
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
+
+    const formattedEntries = entries.map((entry: any) => ({
+      id: entry._id.toString(),
+      userId: entry.userId,
+      emoji: entry.mood,
+      intensity: entry.intensity,
+      note: entry.notes,
+      timestamp: entry.createdAt.toISOString(),
+    }));
 
     return NextResponse.json(
       {
-        entries: userEntries,
-        count: userEntries.length,
+        entries: formattedEntries,
+        count: formattedEntries.length,
       },
       { status: 200 }
     );

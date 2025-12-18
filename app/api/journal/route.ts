@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import connectDB from "@/lib/mongodb";
+import { JournalEntry } from "@/lib/models";
 
 /**
  * Journal API Routes
@@ -6,42 +8,10 @@ import { NextRequest, NextResponse } from "next/server";
  * POST /api/journal - Create new journal entry
  * GET /api/journal?userId=X&limit=Y - Fetch journal entries
  * 
- * TODO: Integrate with database (MongoDB, PostgreSQL, Firestore)
+ * Uses MongoDB with Mongoose
  * TODO: Add authentication middleware
  * TODO: Add data validation with Zod
  */
-
-interface JournalEntry {
-  id: string;
-  userId: string;
-  triggers: string[];
-  note: string;
-  timeSpent: number;
-  timestamp: string;
-  mood?: string;
-}
-
-// In-memory storage for demo (replace with database)
-let mockJournalEntries: JournalEntry[] = [
-  {
-    id: "entry-1",
-    userId: "user123",
-    triggers: ["Checking", "Intrusive thoughts"],
-    note: "Had to check the door locks 5 times before leaving. Felt anxious but managed to leave after breathing exercise.",
-    timeSpent: 15,
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    mood: "😟",
-  },
-  {
-    id: "entry-2",
-    userId: "user123",
-    triggers: ["Cleaning"],
-    note: "Cleaned kitchen counters repeatedly. Stopped after setting a timer.",
-    timeSpent: 30,
-    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    mood: "😌",
-  },
-];
 
 /**
  * POST /api/journal
@@ -67,30 +37,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create new entry
-    const newEntry: JournalEntry = {
-      id: `entry-${Date.now()}`,
+    // Connect to database
+    await connectDB();
+
+    // Create new entry in MongoDB
+    const newEntry = await JournalEntry.create({
       userId,
+      compulsion: note || "Compulsion logged",
       triggers,
-      note: note || "",
       timeSpent,
-      timestamp: timestamp || new Date().toISOString(),
-      mood: mood || undefined,
-    };
-
-    // TODO: Save to database
-    /*
-    const savedEntry = await db.journalEntries.create({
-      data: newEntry,
+      anxietyLevel: mood ? parseInt(mood) : undefined,
+      notes: note,
     });
-    */
 
-    // Mock: Add to in-memory array
-    mockJournalEntries.unshift(newEntry);
+    console.log(`[Journal API] New entry created for user ${userId}: ${newEntry._id}`);
 
-    console.log(`[Journal API] New entry created for user ${userId}`);
-
-    return NextResponse.json(newEntry, { status: 201 });
+    return NextResponse.json({
+      id: newEntry._id.toString(),
+      userId: newEntry.userId,
+      triggers: newEntry.triggers,
+      note: newEntry.notes || "",
+      timeSpent: newEntry.timeSpent,
+      timestamp: newEntry.createdAt.toISOString(),
+      mood: mood,
+    }, { status: 201 });
 
   } catch (error) {
     console.error("[Journal API POST] Error:", error);
@@ -118,19 +88,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // TODO: Fetch from database with pagination
-    /*
-    const entries = await db.journalEntries.findMany({
-      where: { userId },
-      orderBy: { timestamp: 'desc' },
-      take: limit,
-    });
-    */
+    // Connect to database
+    await connectDB();
 
-    // Mock: Filter in-memory array
-    const userEntries = mockJournalEntries
-      .filter((entry) => entry.userId === userId)
-      .slice(0, limit);
+    // Fetch entries from MongoDB
+    const entries = await JournalEntry.find({ userId })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
+
+    // Transform to expected format
+    const userEntries = entries.map((entry) => ({
+      id: entry._id.toString(),
+      userId: entry.userId,
+      triggers: entry.triggers,
+      note: entry.notes || "",
+      timeSpent: entry.timeSpent,
+      timestamp: entry.createdAt.toISOString(),
+      mood: entry.anxietyLevel?.toString(),
+    }));
 
     return NextResponse.json(
       {
@@ -144,60 +120,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("[Journal API GET] Error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
-}
-
-// TODO: Add database integration
-/*
-Example with Prisma:
-
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
-
-// In POST:
-const savedEntry = await prisma.journalEntry.create({
-  data: {
-    userId,
-    triggers,
-    note,
-    timeSpent,
-    timestamp: new Date(timestamp),
-    mood,
-  },
-});
-
-// In GET:
-const entries = await prisma.journalEntry.findMany({
-  where: { userId },
-  orderBy: { timestamp: 'desc' },
-  take: limit,
-});
-*/
-
-// TODO: Add Firebase Firestore integration
-/*
-import { getFirestore } from 'firebase-admin/firestore';
-
-const db = getFirestore();
-
-// In POST:
-const docRef = await db.collection('journalEntries').add({
-  userId,
-  triggers,
-  note,
-  timeSpent,
-  timestamp,
-  mood,
-});
-
-// In GET:
-const snapshot = await db.collection('journalEntries')
-  .where('userId', '==', userId)
-  .orderBy('timestamp', 'desc')
-  .limit(limit)
+   MongoDB integration complete - using Mongoose model
   .get();
 
 const entries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));

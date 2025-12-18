@@ -85,53 +85,41 @@ export default function DashboardPage() {
               </Button>
             </div>
 
-            {/* Mini Metrics Preview */}
-            <div className="space-y-4">
-              {/* Anxiety Trend */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-muted-foreground">Avg Anxiety</span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm font-medium text-foreground">4.5/10</span>
-                    <span className="text-xs text-success">↓</span>
-                  </div>
-                </div>
-                <div className="h-8 flex items-end gap-1">
-                  {[8, 5, 6, 4, 3, 4, 5].map((value, idx) => (
-                    <div
-                      key={idx}
-                      className="flex-1 bg-primary/20 rounded-sm"
-                      style={{ height: `${value * 10}%` }}
-                    />
-                  ))}
+            {/* Pure Factual Metrics - No AI */}
+            <div className="space-y-5">
+              {/* Avg Anxiety */}
+              <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
+                <span className="text-sm text-muted-foreground">Avg Anxiety</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-semibold text-foreground">4.5</span>
+                  <span className="text-xs text-muted-foreground">/10</span>
                 </div>
               </div>
 
-              {/* Compulsions Count */}
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Compulsions</span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm font-medium text-foreground">42</span>
-                    <span className="text-xs text-success">↓ 30%</span>
-                  </div>
+              {/* Total Compulsions */}
+              <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
+                <span className="text-sm text-muted-foreground">Total Compulsions</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-semibold text-foreground">42</span>
+                  <span className="text-xs text-success">↓ 30%</span>
                 </div>
               </div>
 
-              {/* Sessions */}
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Pause Sessions</span>
-                  <span className="text-sm font-medium text-foreground">10</span>
-                </div>
+              {/* Pause Sessions */}
+              <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
+                <span className="text-sm text-muted-foreground">Pause Sessions</span>
+                <span className="text-xl font-semibold text-foreground">10</span>
               </div>
             </div>
           </Card>
 
-          {/* This Week Card - Key KPIs Preview */}
-          <Card className="p-6 bg-card shadow-soft border-border hover-lift cursor-pointer" onClick={() => router.push("/summary")}>
+          {/* AI Snapshot Card */}
+          <Card className="p-6 bg-card shadow-soft border-primary/10 hover-lift cursor-pointer" onClick={() => router.push("/summary")}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium text-base text-foreground">This Week</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-medium text-base text-foreground">AI Snapshot</h3>
+                <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">AI</span>
+              </div>
               <Button 
                 variant="ghost" 
                 size="sm"
@@ -145,10 +133,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="p-3 bg-muted/30 rounded-md border border-border">
                 <p className="text-xs text-muted-foreground mb-1">Sessions</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-lg font-semibold text-foreground">10</span>
-                  <span className="text-xs text-success">↓ 30%</span>
-                </div>
+                <span className="text-lg font-semibold text-foreground">10</span>
               </div>
               <div className="p-3 bg-muted/30 rounded-md border border-border">
                 <p className="text-xs text-muted-foreground mb-1">Completion</p>
@@ -164,10 +149,12 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Single Line Insight */}
-            <p className="text-xs text-muted-foreground p-3 bg-primary/5 rounded-md border border-primary/10">
-              Compulsions down 30% — your strategies are working
-            </p>
+            {/* AI-Generated Pattern Insight */}
+            <div className="p-3 bg-primary/5 rounded-md border border-primary/10">
+              <p className="text-sm text-foreground leading-relaxed">
+                Compulsions dropped on days you logged more pauses — consistency is helping.
+              </p>
+            </div>
           </Card>
         </div>
 

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import connectDB from "@/lib/mongodb";
+import Target from "@/lib/models/Target";
 
 /**
  * Targets API
@@ -8,40 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
  * POST /api/targets - Create new target
  * 
  * TODO: Implement as route with [id] dynamic segment for PATCH
- * TODO: Integrate with database
- * TODO: Add target templates
  */
-
-interface Target {
-  id: string;
-  userId: string;
-  title: string;
-  description?: string;
-  type: "daily" | "weekly";
-  progress: number;
-  goal: number;
-  current: number;
-  completed: boolean;
-  deadline?: string;
-  createdAt: string;
-}
-
-// Mock storage
-const mockTargets: Target[] = [
-  {
-    id: "t1",
-    userId: "user123",
-    title: "No checking rituals",
-    description: "Complete the day without checking locks/stove",
-    type: "daily",
-    progress: 85,
-    goal: 1,
-    current: 0,
-    completed: false,
-    deadline: "Today, 11:59 PM",
-    createdAt: new Date().toISOString(),
-  },
-];
 
 /**
  * GET /api/targets?userId=X
@@ -59,20 +28,30 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // TODO: Fetch from database
-    /*
-    const targets = await db.targets.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-    });
-    */
+    await connectDB();
 
-    const userTargets = mockTargets.filter((t) => t.userId === userId);
+    const targets = await Target.find({ userId } as any)
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const formattedTargets = targets.map((target: any) => ({
+      id: target._id.toString(),
+      userId: target.userId,
+      title: target.title,
+      description: target.description,
+      type: target.type,
+      progress: target.completed ? 100 : 0,
+      goal: target.goal,
+      current: target.completed ? target.goal : 0,
+      completed: target.completed,
+      deadline: target.type === "daily" ? "Today, 11:59 PM" : "This Week",
+      createdAt: target.createdAt.toISOString(),
+    }));
 
     return NextResponse.json(
       {
-        targets: userTargets,
-        count: userTargets.length,
+        targets: formattedTargets,
+        count: formattedTargets.length,
       },
       { status: 200 }
     );
@@ -110,31 +89,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const newTarget: Target = {
-      id: `t${Date.now()}`,
+    await connectDB();
+
+    const newTarget = await Target.create({
       userId,
       title,
-      description: description || undefined,
+      description,
       type,
-      progress: 0,
+      targetType: "reduction",
       goal,
-      current: 0,
       completed: false,
-      createdAt: new Date().toISOString(),
-    };
-
-    // TODO: Save to database
-    /*
-    const savedTarget = await db.targets.create({
-      data: newTarget,
     });
-    */
-
-    mockTargets.push(newTarget);
 
     console.log(`[Targets API] New target created for user ${userId}: ${title}`);
 
-    return NextResponse.json(newTarget, { status: 201 });
+    return NextResponse.json(
+      {
+        id: newTarget._id.toString(),
+        userId: newTarget.userId,
+        title: newTarget.title,
+        description: newTarget.description,
+        type: newTarget.type,
+        progress: 0,
+        goal: newTarget.goal,
+        current: 0,
+        completed: false,
+        createdAt: newTarget.createdAt.toISOString(),
+      },
+      { status: 201 }
+    );
 
   } catch (error) {
     console.error("[Targets API POST] Error:", error);

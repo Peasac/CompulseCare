@@ -149,24 +149,81 @@ const WeeklySummaryPage = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-6xl space-y-8">
-        {/* 1. OVERVIEW SECTION */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-medium text-foreground">
-              Your Progress This Week
-            </h2>
-            {/* Week selector placeholder */}
-            <Button variant="outline" size="sm" className="border-border text-muted-foreground">
-              <Calendar className="w-4 h-4 mr-2" />
-              Last 7 days
-            </Button>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            You're making progress, one step at a time
-          </p>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-medium text-foreground">
+            Weekly Summary
+          </h2>
+          <Button variant="outline" size="sm" className="border-border text-muted-foreground">
+            <Calendar className="w-4 h-4 mr-2" />
+            Last 7 days
+          </Button>
         </div>
 
-        {/* 2. DATA & TRENDS SECTION */}
+        {/* 1. AI WEEKLY INSIGHTS - PRIMARY FOCUS */}
+        <Card className="p-8 shadow-soft bg-gradient-to-br from-card to-muted/10 border-primary/20">
+          <div className="flex items-center gap-2 mb-6">
+            <h3 className="text-lg font-medium text-foreground">
+              Weekly Insights
+            </h3>
+            <span className="text-xs text-primary bg-primary/10 px-2 py-1 rounded">AI-Generated</span>
+          </div>
+          
+          <div className="space-y-6">
+            {/* Patterns Noticed This Week */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-primary text-lg">◆</span>
+                <h4 className="text-base font-medium text-foreground">Patterns noticed this week</h4>
+              </div>
+              <p className="text-base text-foreground leading-relaxed pl-7">
+                {summaryData.insights?.[0] || "Your compulsions decreased on days when you used the pause button more frequently. The breathing exercises seem to create a buffer between the urge and the action."}
+              </p>
+            </div>
+
+            {/* What Helped */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-success text-lg">✓</span>
+                <h4 className="text-base font-medium text-foreground">What helped</h4>
+              </div>
+              <p className="text-base text-foreground leading-relaxed pl-7">
+                {summaryData.textSummary || "Your journal entries show you're recognizing triggers earlier. This awareness is giving you more time to respond rather than react."}
+              </p>
+            </div>
+
+            {/* One Gentle Suggestion */}
+            <div className="pt-4 border-t border-border">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-muted-foreground text-lg">→</span>
+                <h4 className="text-base font-medium text-foreground">One gentle suggestion for next week</h4>
+              </div>
+              <p className="text-base text-foreground leading-relaxed pl-7 mb-4">
+                {summaryData.insights?.[1] || "Try using the pause button at the first sign of a trigger, before the compulsion feels urgent. Early intervention seems to work best for you."}
+              </p>
+              <div className="flex flex-wrap gap-2 pl-7">
+                <Button
+                  onClick={() => router.push("/journal")}
+                  variant="outline"
+                  size="sm"
+                  className="border-border"
+                >
+                  Log a reflection
+                </Button>
+                <Button
+                  onClick={() => router.push("/targets")}
+                  variant="outline"
+                  size="sm"
+                  className="border-border"
+                >
+                  Set a goal
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* 2. DATA & TRENDS SECTION - SUPPORTING EVIDENCE */}
         <div>
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-4">
             Data & Trends
@@ -244,85 +301,45 @@ const WeeklySummaryPage = () => {
           </div>
         </div>
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="p-4 shadow-soft bg-card border-border">
-            <p className="text-xs text-muted-foreground mb-2">Total Compulsions</p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-semibold text-foreground">
-                {summaryData.totalCompulsions || 0}
-              </span>
-              {summaryData.compulsionChange && summaryData.compulsionChange < 0 && (
-                <span className="text-xs text-success">
-                  ↓ {Math.abs(summaryData.compulsionChange)}%
-                </span>
-              )}
-            </div>
-          </Card>
-          <Card className="p-4 shadow-soft bg-card border-border">
-            <p className="text-xs text-muted-foreground mb-2">Avg Time</p>
-            <span className="text-2xl font-semibold text-foreground">
-              {summaryData.avgTimeSpent || 0}<span className="text-sm text-muted-foreground font-normal ml-1">min</span>
-            </span>
-          </Card>
-          <Card className="p-4 shadow-soft bg-card border-border">
-            <p className="text-xs text-muted-foreground mb-2">Avg Mood</p>
-            <span className="text-2xl font-semibold text-foreground">
-              {summaryData.moodAverage || "N/A"}<span className="text-sm text-muted-foreground font-normal">/10</span>
-            </span>
-          </Card>
-          <Card className="p-4 shadow-soft bg-card border-border">
-            <p className="text-xs text-muted-foreground mb-2">Top Trigger</p>
-            <span className="text-sm font-medium text-foreground">
-              {summaryData.mostCommonTrigger || "None"}
-            </span>
-          </Card>
-        </div>
-
-        {/* 3. AI INSIGHTS SECTION */}
+        {/* 3. KEY METRICS - SUPPORTING DATA */}
         <div>
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-4">
-            AI Insights
+            Key Metrics
           </h3>
-          <Card className="p-6 shadow-soft bg-card border-border">
-            <p className="text-foreground leading-relaxed mb-6">
-              {summaryData.textSummary}
-            </p>
-            {summaryData.insights && summaryData.insights.length > 0 && (
-              <ul className="space-y-3">
-                {summaryData.insights.map((insight, index) => (
-                  <li key={index} className="flex items-start gap-3 p-3 bg-muted/30 rounded-md">
-                    <span className="text-primary text-sm mt-0.5">•</span>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{insight}</p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-        </div>
-
-        {/* 4. ACTIONABLE REFLECTION SECTION */}
-        <Card className="p-6 shadow-soft bg-card border-border">
-          <h3 className="text-sm font-medium text-foreground mb-3">
-            Does this reflect how your week felt?
-          </h3>
-          <div className="flex flex-wrap gap-3">
-            <Button
-              onClick={() => router.push("/journal")}
-              variant="outline"
-              className="border-border"
-            >
-              Log a reflection
-            </Button>
-            <Button
-              onClick={() => router.push("/targets")}
-              variant="outline"
-              className="border-border"
-            >
-              Set a small goal
-            </Button>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card className="p-4 shadow-soft bg-card border-border">
+              <p className="text-xs text-muted-foreground mb-2">Total Compulsions</p>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-semibold text-foreground">
+                  {summaryData.totalCompulsions || 0}
+                </span>
+                {summaryData.compulsionChange && summaryData.compulsionChange < 0 && (
+                  <span className="text-xs text-success">
+                    ↓ {Math.abs(summaryData.compulsionChange)}%
+                  </span>
+                )}
+              </div>
+            </Card>
+            <Card className="p-4 shadow-soft bg-card border-border">
+              <p className="text-xs text-muted-foreground mb-2">Avg Time</p>
+              <span className="text-2xl font-semibold text-foreground">
+                {summaryData.avgTimeSpent || 0}<span className="text-sm text-muted-foreground font-normal ml-1">min</span>
+              </span>
+            </Card>
+            <Card className="p-4 shadow-soft bg-card border-border">
+              <p className="text-xs text-muted-foreground mb-2">Avg Mood</p>
+              <span className="text-2xl font-semibold text-foreground">
+                {summaryData.moodAverage || "N/A"}<span className="text-sm text-muted-foreground font-normal">/10</span>
+              </span>
+            </Card>
+            <Card className="p-4 shadow-soft bg-card border-border">
+              <p className="text-xs text-muted-foreground mb-2">Top Trigger</p>
+              <span className="text-sm font-medium text-foreground">
+                {summaryData.mostCommonTrigger || "None"}
+              </span>
+            </Card>
           </div>
-        </Card>
+        </div>
       </main>
     </div>
   );
