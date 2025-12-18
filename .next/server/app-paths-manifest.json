@@ -1,0 +1,6 @@
+{
+  "/logger/page": "app/logger/page.js",
+  "/page": "app/page.js",
+  "/journal/page": "app/journal/page.js",
+  "/api/journal/route": "app/api/journal/route.js"
+}
