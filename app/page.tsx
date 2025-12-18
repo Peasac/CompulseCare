@@ -36,12 +36,12 @@ export default function DashboardPage() {
             <CompulsionLoggerWidget />
           </div>
 
-          {/* Center Column - Pause & Breathe Button */}
+          {/* Center Column - Panic Button */}
           <div className="lg:col-span-1 flex flex-col items-center justify-start">
             <div className="sticky top-8 w-full max-w-md">
               <button
                 onClick={handlePauseClick}
-                className="relative w-full aspect-square max-w-[380px] mx-auto rounded-full bg-gradient-to-br from-pink-200 via-rose-200 to-pink-300 shadow-soft-lg hover:shadow-xl transition-calm hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-pink-200/50 group"
+                className="relative w-full aspect-square max-w-[380px] mx-auto rounded-full bg-gradient-to-br from-pink-200 via-rose-200 to-pink-300 shadow-soft-lg hover:shadow-xl transition-calm hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-pink-200/50 group animate-breathe"
               >
                 {/* Subtle glow */}
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-100 to-rose-100 blur-2xl opacity-40 group-hover:opacity-60 transition-fade" />
@@ -54,10 +54,10 @@ export default function DashboardPage() {
                     </svg>
                   </div>
                   <h2 className="text-3xl md:text-4xl font-semibold text-pink-800 mb-2">
-                    Pause & Breathe
+                    Panic
                   </h2>
                   <p className="text-pink-700/80 text-center text-sm md:text-base">
-                    Take a moment for yourself
+                    I need help now
                   </p>
                 </div>
               </button>

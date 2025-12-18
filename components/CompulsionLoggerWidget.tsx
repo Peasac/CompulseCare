@@ -115,20 +115,20 @@ export default function CompulsionLoggerWidget({ onLogSubmit }: CompulsionLogger
         <div className="grid grid-cols-2 gap-3">
           <Input
             type="number"
-            placeholder="Hours"
+            placeholder="0 hours"
             value={hours}
             onChange={(e) => setHours(e.target.value)}
             min="0"
-            className="text-sm bg-white border-gray-200 focus:border-blue-300 focus:ring-blue-200 transition-calm"
+            className="text-sm bg-white border-gray-200 focus:border-blue-300 focus:ring-blue-200 transition-calm placeholder:text-gray-400"
           />
           <Input
             type="number"
-            placeholder="Minutes"
+            placeholder="0 minutes"
             value={minutes}
             onChange={(e) => setMinutes(e.target.value)}
             min="0"
             max="59"
-            className="text-sm bg-white border-gray-200 focus:border-blue-300 focus:ring-blue-200 transition-calm"
+            className="text-sm bg-white border-gray-200 focus:border-blue-300 focus:ring-blue-200 transition-calm placeholder:text-gray-400"
           />
         </div>
       </div>

@@ -142,16 +142,16 @@ const TargetsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F5F6FA] flex items-center justify-center">
-        <Loader2 className="w-12 h-12 animate-spin text-[#2563EB]" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-12 h-12 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F6FA]">
+    <div className="min-h-screen bg-background">
       {/* Page Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+      <header className="bg-card border-b border-border shadow-soft sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 max-w-4xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -164,15 +164,15 @@ const TargetsPage = () => {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-xl font-bold text-gray-800">Targets</h1>
-                <p className="text-sm text-gray-500">Track your daily & weekly goals</p>
+                <h1 className="text-xl font-medium text-foreground">Targets</h1>
+                <p className="text-sm text-muted-foreground">Track your daily & weekly goals</p>
               </div>
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => alert("Add target feature coming soon!")}
-              className="gap-2"
+              className="gap-2 border-border"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Add</span>
@@ -184,32 +184,32 @@ const TargetsPage = () => {
       <main className="container mx-auto px-4 py-6 max-w-3xl">
         {/* Stats Overview */}
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <Card className="p-4 bg-gradient-to-br from-[#2563EB]/10 to-white">
+          <Card className="p-4 bg-card border-border shadow-soft">
             <div className="flex items-center gap-2 mb-2">
-              <Trophy className="w-5 h-5 text-[#2563EB]" />
-              <span className="text-sm font-medium text-gray-600">Daily</span>
+              <Trophy className="w-5 h-5 text-primary" />
+              <span className="text-sm font-medium text-muted-foreground">Daily</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800">
+            <p className="text-2xl font-semibold text-foreground">
               {completedDaily}/{dailyTargets.length}
             </p>
-            <p className="text-xs text-gray-500">completed today</p>
+            <p className="text-xs text-muted-foreground">completed today</p>
           </Card>
 
-          <Card className="p-4 bg-gradient-to-br from-[#06B6D4]/10 to-white">
+          <Card className="p-4 bg-card border-border shadow-soft">
             <div className="flex items-center gap-2 mb-2">
-              <Trophy className="w-5 h-5 text-[#06B6D4]" />
-              <span className="text-sm font-medium text-gray-600">Weekly</span>
+              <Trophy className="w-5 h-5 text-success" />
+              <span className="text-sm font-medium text-muted-foreground">Weekly</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800">
+            <p className="text-2xl font-semibold text-foreground">
               {completedWeekly}/{weeklyTargets.length}
             </p>
-            <p className="text-xs text-gray-500">completed this week</p>
+            <p className="text-xs text-muted-foreground">completed this week</p>
           </Card>
         </div>
 
         {/* Tabs for Daily/Weekly */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "daily" | "weekly")}>
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted">
             <TabsTrigger value="daily">Daily Targets</TabsTrigger>
             <TabsTrigger value="weekly">Weekly Targets</TabsTrigger>
           </TabsList>
@@ -217,11 +217,11 @@ const TargetsPage = () => {
           {/* Daily Targets */}
           <TabsContent value="daily" className="space-y-4">
             {dailyTargets.length === 0 ? (
-              <Card className="p-8 text-center">
-                <p className="text-gray-500">No daily targets set yet.</p>
+              <Card className="p-8 text-center bg-card border-border">
+                <p className="text-muted-foreground">No daily targets set yet.</p>
                 <Button
                   onClick={() => alert("Add target feature coming soon!")}
-                  className="mt-4 bg-[#2563EB] hover:bg-[#1D4ED8]"
+                  className="mt-4 bg-primary hover:bg-primary/90"
                 >
                   Create Your First Target
                 </Button>
@@ -240,11 +240,11 @@ const TargetsPage = () => {
           {/* Weekly Targets */}
           <TabsContent value="weekly" className="space-y-4">
             {weeklyTargets.length === 0 ? (
-              <Card className="p-8 text-center">
-                <p className="text-gray-500">No weekly targets set yet.</p>
+              <Card className="p-8 text-center bg-card border-border">
+                <p className="text-muted-foreground">No weekly targets set yet.</p>
                 <Button
                   onClick={() => alert("Add target feature coming soon!")}
-                  className="mt-4 bg-[#06B6D4] hover:bg-[#0891B2] text-white"
+                  className="mt-4 bg-success hover:bg-success/90 text-success-foreground"
                 >
                   Create Your First Target
                 </Button>

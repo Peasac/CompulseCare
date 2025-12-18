@@ -11,20 +11,10 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/logger/page": [
+    "/targets/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/logger/page.js"
-    ],
-    "/journal/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/journal/page.js"
-    ],
-    "/panic/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/panic/page.js"
+      "static/chunks/app/targets/page.js"
     ]
   }
 }

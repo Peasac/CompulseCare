@@ -1,12 +1,30 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
 /**
  * Gemini AI Client for CompulseCare
- * Uses Google's Gemini API for supportive messages and insights
+ * Uses direct REST API calls to Google's Gemini API
  */
 
-// Initialize the Gemini API client
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent";
+
+/**
+ * Make a direct REST API call to Gemini
+ */
+async function callGemini(prompt: string): Promise<string> {
+  const response = await fetch(`${GEMINI_ENDPOINT}?key=${GEMINI_API_KEY}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Gemini API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+}
 
 /**
  * Get supportive message during panic episodes
@@ -15,65 +33,87 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
  */
 export async function getPanicSupport(context?: string): Promise<{
   message: string;
-  suggestions: string[];
 }> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
-    const prompt = `You are a compassionate mental health support assistant for someone experiencing a panic episode related to OCD compulsions.
+    const prompt = `You are a compassionate mental health support assistant for someone who just completed a breathing exercise during a panic episode.
 
 ${context ? `Context: ${context}` : ""}
 
-Provide:
-1. A short, calming, validating message (2-3 sentences max)
-2. Three specific, actionable grounding techniques
+Generate a SHORT reassurance message following these strict rules:
+- Maximum 2 sentences
+- Calm and validating tone
+- NO advice, NO instructions, NO questions
+- NO exclamation marks
+- NO "you should" language
+- NO clinical or disorder labels
 
-Be warm, non-judgmental, and focus on immediate relief. Avoid medical advice.
+Examples of good responses:
+"You handled that moment with care. It's okay to take things slowly right now."
+"You're doing what you need to do. That took courage."
+"This feeling is temporary. You're safe in this moment."
 
-Format your response as JSON:
-{
-  "message": "your calming message here",
-  "suggestions": ["technique 1", "technique 2", "technique 3"]
-}`;
+Provide ONLY the message text (no JSON, no formatting).`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const text = await callGemini(prompt);
+    
+    // Clean up any formatting
+    const cleanedText = text
+      .replace(/["\{\}]/g, '')
+      .replace(/^message:\s*/i, '')
+      .trim();
 
-    // Try to parse JSON response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
-      return {
-        message: parsed.message || text,
-        suggestions: parsed.suggestions || [
-          "Take 3 deep breaths",
-          "Ground yourself with 5-4-3-2-1",
-          "You're safe right now",
-        ],
-      };
-    }
-
-    // Fallback if JSON parsing fails
     return {
-      message: text.split("\n")[0] || "You're doing great. This feeling will pass.",
-      suggestions: [
-        "Take 3 deep breaths",
-        "Ground yourself with 5-4-3-2-1",
-        "You're safe right now",
-      ],
+      message: cleanedText || "You handled that moment with care. It's okay to take things slowly right now.",
     };
   } catch (error) {
     console.error("Gemini API error:", error);
-    // Return fallback supportive message
     return {
-      message: "You're doing great. Take a moment to breathe. This feeling will pass.",
-      suggestions: [
-        "Breathe: In for 4, hold for 4, out for 6",
-        "Name 5 things you can see around you",
-        "Remember: You've gotten through this before",
-      ],
+      message: "You handled that moment with care. It's okay to take things slowly right now.",
     };
+  }
+}
+
+/**
+ * Get reflective response to user's panic moment writing
+ * @param userReflection - What the user wrote about their panic moment
+ * @returns Calm, reflective 1-2 sentence response
+ */
+export async function getPanicReflection(userReflection: string): Promise<string> {
+  try {
+    const prompt = `You are a compassionate, reflective listener for someone who just experienced a panic episode and is processing it.
+
+The user wrote:
+"${userReflection}"
+
+Generate a BRIEF reflective response following these strict rules:
+- Maximum 1-2 sentences
+- Reflect back what they shared, normalize it
+- Calm, steady, quiet tone
+- NO advice, NO instructions, NO questions
+- NO exclamation marks
+- NO "you should" language
+- NO mental health labels or clinical terms
+- DO NOT validate the fear itself, normalize the response to it
+
+Examples of good responses:
+"That sounds like it was a lot to carry. You're processing it now."
+"It makes sense that felt overwhelming. You're here, working through it."
+"Those moments can feel really big. You're taking time to understand it."
+
+Provide ONLY the reflection text (no JSON, no formatting).`;
+
+    const text = await callGemini(prompt);
+    
+    // Clean up any formatting
+    const cleanedText = text
+      .replace(/["\{\}]/g, '')
+      .replace(/^reflection:\s*/i, '')
+      .trim();
+
+    return cleanedText || "That sounds like it was a lot to carry. You're processing it now.";
+  } catch (error) {
+    console.error("Gemini API error:", error);
+    return "Thank you for sharing. That took courage.";
   }
 }
 
@@ -90,8 +130,6 @@ export async function generateWeeklyInsights(summaryData: {
   topTriggers: string[];
 }): Promise<string[]> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
     const prompt = `You are a supportive mental health insights generator for someone managing OCD.
 
 Weekly Data:
@@ -111,9 +149,7 @@ Be specific to the data, warm, and hopeful. Format as a JSON array of strings.
 Example format:
 ["insight 1", "insight 2", "insight 3"]`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const text = await callGemini(prompt);
 
     // Try to parse JSON array
     const jsonMatch = text.match(/\[[\s\S]*\]/);
@@ -132,7 +168,6 @@ Example format:
     ];
   } catch (error) {
     console.error("Gemini API error:", error);
-    // Return fallback insights
     return [
       "You're making progress one day at a time.",
       "Tracking your patterns is a powerful tool for change.",

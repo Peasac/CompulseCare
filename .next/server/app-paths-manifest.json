@@ -1,8 +1,4 @@
 {
   "/page": "app/page.js",
-  "/logger/page": "app/logger/page.js",
-  "/api/panic/route": "app/api/panic/route.js",
-  "/journal/page": "app/journal/page.js",
-  "/api/journal/route": "app/api/journal/route.js",
-  "/panic/page": "app/panic/page.js"
+  "/targets/page": "app/targets/page.js"
 }

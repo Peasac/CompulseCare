@@ -11,8 +11,7 @@ import { getPanicSupport } from "@/lib/gemini";
  * - context?: string (optional additional context)
  * 
  * Response:
- * - message: string (supportive LLM-generated message)
- * - suggestions: string[] (actionable suggestions)
+ * - message: string (short, calming reassurance - max 2 sentences)
  * 
  * TODO: Store panic events in database for analytics
  * TODO: Add rate limiting to prevent abuse
@@ -61,12 +60,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Internal server error",
-        message: "You're safe. We're having a technical issue, but please reach out to someone you trust if you need immediate support.",
-        suggestions: [
-          "Take slow, deep breaths",
-          "You are safe right now",
-          "This feeling will pass",
-        ],
+        message: "You handled that moment with care. It's okay to take things slowly right now.",
         timestamp: new Date().toISOString(),
       },
       { status: 500 }
