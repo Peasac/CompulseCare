@@ -186,14 +186,14 @@ const LoggerPage = () => {
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card className="p-4 bg-white shadow-sm border-gray-200">
+          <Card className="p-4 bg-white shadow-soft border-gray-100 hover-lift">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-600 font-medium mb-1">Total Entries</p>
-                <p className="text-2xl font-bold text-gray-900">{filteredLogs.length}</p>
+                <p className="text-xs text-gray-500 font-medium mb-1 uppercase tracking-wide">Entries</p>
+                <p className="text-2xl font-semibold text-gray-800">{filteredLogs.length}</p>
               </div>
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Clock className="w-5 h-5 text-blue-600" />
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <Clock className="w-4 h-4 text-blue-500" />
               </div>
             </div>
           </Card>

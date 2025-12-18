@@ -54,41 +54,39 @@ export default function CompulsionLoggerWidget({ onLogSubmit }: CompulsionLogger
   };
 
   return (
-    <Card className="p-6 bg-white shadow-sm border border-gray-200">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Clock className="w-5 h-5 text-blue-500" />
-          <h3 className="font-semibold text-lg text-gray-800">Compulsion Logger</h3>
+    <Card className="p-6 bg-white shadow-soft border-gray-100 hover-lift">
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
+          <Clock className="w-4 h-4 text-blue-400" />
+          <h3 className="font-medium text-base text-gray-700">Quick Logger</h3>
         </div>
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => router.push("/logger")}
-            className="text-blue-600 hover:text-blue-700"
-          >
-            <List className="w-4 h-4 mr-1" />
-            View All
-          </Button>
-        </div>
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={() => router.push("/logger")}
+          className="text-gray-400 hover:text-gray-600 text-xs"
+        >
+          <List className="w-3.5 h-3.5 mr-1" />
+          All logs
+        </Button>
       </div>
 
       {/* Activity Input */}
-      <div className="mb-4">
-        <label className="text-sm font-medium text-gray-700 mb-2 block">
-          Activity/Compulsion
+      <div className="mb-5">
+        <label className="text-xs font-medium text-gray-500 mb-2 block uppercase tracking-wide">
+          What happened?
         </label>
         <Input
-          placeholder="e.g., Checked door locks, Washed hands..."
+          placeholder="e.g., Checked door locks..."
           value={activity}
           onChange={(e) => setActivity(e.target.value)}
-          className="text-sm bg-gray-100 border-gray-200 placeholder:text-gray-400"
+          className="text-sm bg-white border-gray-200 focus:border-blue-300 focus:ring-blue-200 placeholder:text-gray-400 transition-calm"
         />
       </div>
 
       {/* Category Pills */}
-      <div className="mb-4">
-        <label className="text-sm font-medium text-gray-700 mb-2 block">
+      <div className="mb-5">
+        <label className="text-xs font-medium text-gray-500 mb-2 block uppercase tracking-wide">
           Category
         </label>
         <div className="flex flex-wrap gap-2">
@@ -96,10 +94,10 @@ export default function CompulsionLoggerWidget({ onLogSubmit }: CompulsionLogger
             <Badge
               key={cat}
               variant="outline"
-              className={`cursor-pointer transition-colors border-gray-300 text-gray-700 ${
+              className={`cursor-pointer transition-calm font-medium ${
                 selectedCategory === cat
-                  ? "bg-gray-100 hover:bg-gray-200"
-                  : "hover:bg-gray-50"
+                  ? "bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100"
+                  : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
               }`}
               onClick={() => setSelectedCategory(cat)}
             >
@@ -110,18 +108,18 @@ export default function CompulsionLoggerWidget({ onLogSubmit }: CompulsionLogger
       </div>
 
       {/* Time Spent */}
-      <div className="mb-4">
-        <label className="text-sm font-medium text-gray-700 mb-2 block">
+      <div className="mb-5">
+        <label className="text-xs font-medium text-gray-500 mb-2 block uppercase tracking-wide">
           Time Spent
         </label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <Input
             type="number"
             placeholder="Hours"
             value={hours}
             onChange={(e) => setHours(e.target.value)}
             min="0"
-            className="text-sm bg-gray-100 border-gray-200"
+            className="text-sm bg-white border-gray-200 focus:border-blue-300 focus:ring-blue-200 transition-calm"
           />
           <Input
             type="number"
@@ -130,7 +128,7 @@ export default function CompulsionLoggerWidget({ onLogSubmit }: CompulsionLogger
             onChange={(e) => setMinutes(e.target.value)}
             min="0"
             max="59"
-            className="text-sm bg-gray-100 border-gray-200"
+            className="text-sm bg-white border-gray-200 focus:border-blue-300 focus:ring-blue-200 transition-calm"
           />
         </div>
       </div>
@@ -138,16 +136,16 @@ export default function CompulsionLoggerWidget({ onLogSubmit }: CompulsionLogger
       {/* Log Button */}
       <Button
         onClick={handleSubmit}
-        className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+        className="w-full bg-blue-500 hover:bg-blue-600 text-white transition-calm disabled:opacity-50"
         disabled={!activity || !selectedCategory}
       >
-        Log Compulsion
+        Save Entry
       </Button>
 
       {/* Today's Total */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-sm text-gray-600 text-center">Today's Total Time</p>
-        <p className="text-3xl font-bold text-center mt-1 text-gray-800">{todayTotal}m</p>
+      <div className="mt-6 p-4 bg-blue-50/30 rounded-lg border border-blue-100">
+        <p className="text-xs text-gray-500 text-center uppercase tracking-wide">Today's Total</p>
+        <p className="text-2xl font-semibold text-center mt-1 text-gray-700">{todayTotal}m</p>
       </div>
 
       {/* Recent Entries */}
@@ -156,20 +154,20 @@ export default function CompulsionLoggerWidget({ onLogSubmit }: CompulsionLogger
           {recentEntries.map((entry, idx) => (
             <div
               key={idx}
-              className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-100"
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-calm"
             >
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">{entry.activity}</p>
+                <p className="text-sm font-medium text-gray-700">{entry.activity}</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
+                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 border-blue-200">
                     {entry.category}
                   </Badge>
-                  <span className="text-xs text-gray-500">{entry.timestamp}</span>
+                  <span className="text-xs text-gray-400">{entry.timestamp}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-gray-700">{entry.time}</span>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500">
+                <span className="text-sm font-medium text-gray-600">{entry.time}</span>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-gray-400 hover:text-red-500 transition-calm">
                   🗑️
                 </Button>
               </div>

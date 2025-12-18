@@ -155,25 +155,25 @@ const JournalPage = () => {
 
       <main className="container mx-auto px-4 py-6 max-w-2xl">
         {/* Journal Entry Form */}
-        <Card className="p-6 mb-8 shadow-lg bg-white border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        <Card className="p-6 mb-8 shadow-soft bg-white border-gray-100 hover-lift">
+          <h2 className="text-base font-medium text-gray-700 mb-5">
             New Entry
           </h2>
 
           {/* Trigger Selection */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              What happened? <span className="text-red-500">*</span>
+            <label className="block text-xs font-medium text-gray-500 mb-3 uppercase tracking-wide">
+              What happened? <span className="text-pink-500">*</span>
             </label>
             <div className="flex flex-wrap gap-2">
               {TRIGGER_OPTIONS.map((trigger) => (
                 <Badge
                   key={trigger}
                   variant={selectedTriggers.includes(trigger) ? "default" : "outline"}
-                  className={`cursor-pointer transition-all ${
+                  className={`cursor-pointer transition-calm font-medium ${
                     selectedTriggers.includes(trigger)
-                      ? "bg-blue-600 text-white hover:bg-blue-700 border-blue-600"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                      ? "bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100"
+                      : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                   }`}
                   onClick={() => toggleTrigger(trigger)}
                 >
@@ -185,7 +185,7 @@ const JournalPage = () => {
 
           {/* Note Input */}
           <div className="mb-6">
-            <label htmlFor="note" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="note" className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
               Quick note (optional)
             </label>
             <Textarea
@@ -194,11 +194,11 @@ const JournalPage = () => {
               onChange={(e) => setNote(e.target.value)}
               maxLength={charLimit}
               placeholder="How did you feel? What helped?"
-              className="resize-none h-24 bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
+              className="resize-none h-24 bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-blue-300 focus:ring-blue-200 transition-calm"
             />
-            <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
+            <div className="flex justify-between items-center mt-2 text-xs text-gray-400">
               <span>Keep it brief – just what matters</span>
-              <span className={note.length > 120 ? "text-amber-600 font-medium" : ""}>
+              <span className={note.length > 120 ? "text-orange-500 font-medium" : "text-gray-400"}>
                 {note.length}/{charLimit}
               </span>
             </div>
@@ -206,7 +206,7 @@ const JournalPage = () => {
 
           {/* Time Spent */}
           <div className="mb-6">
-            <label htmlFor="timeSpent" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="timeSpent" className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
               Time spent (minutes)
             </label>
             <div className="flex items-center gap-4">
@@ -218,9 +218,9 @@ const JournalPage = () => {
                 step="1"
                 value={timeSpent}
                 onChange={(e) => setTimeSpent(Number(e.target.value))}
-                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
+                className="flex-1 h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-blue-500"
               />
-              <span className="text-lg font-semibold text-gray-800 min-w-[3rem] text-right">
+              <span className="text-base font-medium text-gray-700 min-w-[3rem] text-right">
                 {timeSpent}m
               </span>
             </div>
@@ -230,7 +230,7 @@ const JournalPage = () => {
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || selectedTriggers.length === 0}
-            className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white h-12 text-base font-semibold"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white h-12 text-base font-medium transition-calm disabled:opacity-50"
           >
             {isSubmitting ? (
               <>
@@ -248,7 +248,7 @@ const JournalPage = () => {
 
         {/* Recent Entries */}
         <div>
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          <h2 className="text-base font-medium text-gray-700 mb-4">
             Recent Entries
           </h2>
 

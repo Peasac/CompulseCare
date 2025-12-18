@@ -28,7 +28,7 @@ const JournalCard = ({ entry, compact = false }: JournalCardProps) => {
   const { triggers, note, timeSpent, timestamp, mood } = entry;
 
   return (
-    <Card className={`${compact ? 'p-4' : 'p-6'} shadow-md hover:shadow-lg transition-shadow bg-white border-gray-200`}>
+    <Card className={`${compact ? 'p-4' : 'p-5'} shadow-soft hover:shadow-soft-lg transition-calm bg-white border-gray-100`}>
       {/* Header with timestamp */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2 text-sm text-gray-500">

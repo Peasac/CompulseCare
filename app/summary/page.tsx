@@ -148,70 +148,70 @@ const WeeklySummaryPage = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
-        {/* LLM-Generated Summary - NO YELLOW */}
-        <Card className="p-6 md:p-8 shadow-sm bg-white border-l-4 border-blue-500">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+      <main className="container mx-auto px-4 py-8 max-w-6xl space-y-8">
+        {/* LLM-Generated Summary */}
+        <Card className="p-6 md:p-8 shadow-soft bg-white border-l-4 border-blue-300 hover-lift">
+          <h2 className="text-xl font-medium text-gray-700 mb-4">
             Your Progress This Week
           </h2>
-          <p className="text-gray-700 leading-relaxed text-base md:text-lg">
+          <p className="text-gray-600 leading-relaxed text-base">
             {summaryData.textSummary}
           </p>
         </Card>
 
-        {/* Key Stats Grid - NO YELLOW BACKGROUNDS */}
+        {/* Key Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Activity Overview */}
-          <Card className="p-6 shadow-sm bg-white">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <Card className="p-6 shadow-soft bg-white border-gray-100 hover-lift">
+            <h3 className="text-base font-medium text-gray-700 mb-5">
               Activity Overview
             </h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <span className="text-sm text-gray-600">Total compulsions</span>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-gray-50/50 border border-gray-100 rounded-lg">
+                <span className="text-xs text-gray-500 uppercase tracking-wide">Total compulsions</span>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-gray-800">
-                    {summaryData.totalCompulsions}
+                  <span className="text-xl font-semibold text-gray-700">
+                    {summaryData.totalCompulsions || 0}
                   </span>
-                  {summaryData.compulsionChange < 0 && (
-                    <span className="text-xs text-green-600">
+                  {summaryData.compulsionChange && summaryData.compulsionChange < 0 && (
+                    <span className="text-xs text-emerald-600">
                       ↓ {Math.abs(summaryData.compulsionChange)}%
                     </span>
                   )}
                 </div>
               </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <span className="text-sm text-gray-600">Avg. time spent</span>
-                <span className="text-2xl font-bold text-gray-800">
-                  {summaryData.avgTimeSpent} <span className="text-sm text-gray-500">min</span>
+              <div className="flex items-center justify-between p-3 bg-gray-50/50 border border-gray-100 rounded-lg">
+                <span className="text-xs text-gray-500 uppercase tracking-wide">Avg. time spent</span>
+                <span className="text-xl font-semibold text-gray-700">
+                  {summaryData.avgTimeSpent || 0} <span className="text-sm text-gray-400 font-normal">min</span>
                 </span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <span className="text-sm text-gray-600">Most common</span>
-                <span className="text-lg font-semibold text-gray-800">
-                  {summaryData.mostCommonTrigger}
+              <div className="flex items-center justify-between p-3 bg-gray-50/50 border border-gray-100 rounded-lg">
+                <span className="text-xs text-gray-500 uppercase tracking-wide">Most common</span>
+                <span className="text-sm font-medium text-gray-700">
+                  {summaryData.mostCommonTrigger || "N/A"}
                 </span>
               </div>
             </div>
           </Card>
 
           {/* Insights */}
-          <Card className="p-6 shadow-sm bg-white">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <Card className="p-6 shadow-soft bg-white border-gray-100 hover-lift">
+            <h3 className="text-base font-medium text-gray-700 mb-5">
               AI Insights
             </h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <span className="text-sm text-gray-600">Average mood</span>
-                <span className="text-2xl font-bold text-gray-800">
-                  {summaryData.moodAverage} <span className="text-sm text-gray-500">/10</span>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-gray-50/50 border border-gray-100 rounded-lg">
+                <span className="text-xs text-gray-500 uppercase tracking-wide">Average mood</span>
+                <span className="text-xl font-semibold text-gray-700">
+                  {summaryData.moodAverage || "N/A"} <span className="text-sm text-gray-400 font-normal">/10</span>
                 </span>
               </div>
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <span className="text-blue-600">💡</span>
-                  <p className="text-sm text-gray-700 italic leading-relaxed">
-                    "{summaryData.insights[0] || "Keep up the good work!"}"
+              <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <span className="text-blue-400 opacity-70">💡</span>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {summaryData.insights?.[0] || "Keep tracking to get personalized insights."}
                   </p>
                 </div>
               </div>
@@ -219,11 +219,11 @@ const WeeklySummaryPage = () => {
           </Card>
         </div>
 
-        {/* Charts Section - Side by Side */}
+        {/* Charts Section - More subtle */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Compulsions Chart */}
-          <Card className="p-6 shadow-sm bg-white">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <Card className="p-5 shadow-soft bg-gray-50/30 border-gray-100">
+            <h3 className="text-sm font-medium text-gray-600 mb-4 uppercase tracking-wide">
               Daily Compulsions
             </h3>
             <ResponsiveContainer width="100%" height={280}>
@@ -256,8 +256,8 @@ const WeeklySummaryPage = () => {
           </Card>
 
           {/* Time Spent Chart */}
-          <Card className="p-6 shadow-sm bg-white">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <Card className="p-5 shadow-soft bg-gray-50/30 border-gray-100">
+            <h3 className="text-sm font-medium text-gray-600 mb-4 uppercase tracking-wide">
               Time Spent (minutes)
             </h3>
             <ResponsiveContainer width="100%" height={280}>
@@ -294,17 +294,17 @@ const WeeklySummaryPage = () => {
         </div>
 
         {/* Additional Insights - Full Width */}
-        {summaryData.insights.length > 1 && (
-          <Card className="p-6 shadow-sm bg-white">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <span>💡</span>
+        {summaryData.insights && summaryData.insights.length > 1 && (
+          <Card className="p-6 shadow-soft bg-white border-gray-100 hover-lift">
+            <h3 className="text-sm font-medium text-gray-600 mb-4 flex items-center gap-2 uppercase tracking-wide">
+              <span className="opacity-70">💡</span>
               More Insights
             </h3>
             <ul className="space-y-3">
               {summaryData.insights.slice(1).map((insight, index) => (
-                <li key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                  <span className="text-blue-600 text-lg mt-0.5">•</span>
-                  <p className="text-gray-700 leading-relaxed">{insight}</p>
+                <li key={index} className="flex items-start gap-3 p-3 bg-gray-50/50 border border-gray-100 rounded-lg">
+                  <span className="text-blue-400 text-base mt-0.5">•</span>
+                  <p className="text-gray-600 leading-relaxed text-sm">{insight}</p>
                 </li>
               ))}
             </ul>
