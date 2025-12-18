@@ -31,6 +31,13 @@ const TargetsPage = () => {
   const [targets, setTargets] = useState<Target[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"daily" | "weekly">("daily");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newTarget, setNewTarget] = useState({
+    title: "",
+    description: "",
+    type: "daily" as "daily" | "weekly",
+    goal: 1,
+  });
 
   useEffect(() => {
     fetchTargets();
@@ -134,6 +141,31 @@ const TargetsPage = () => {
     }
   };
 
+  const handleAddTarget = () => {
+    if (!newTarget.title.trim()) return;
+
+    const target: Target = {
+      id: `t${Date.now()}`,
+      title: newTarget.title,
+      description: newTarget.description,
+      type: newTarget.type,
+      progress: 0,
+      goal: newTarget.goal,
+      current: 0,
+      completed: false,
+      deadline: newTarget.type === "daily" ? "Today, 11:59 PM" : "Sunday, 11:59 PM",
+    };
+
+    setTargets((prev) => [...prev, target]);
+    setShowAddModal(false);
+    setNewTarget({
+      title: "",
+      description: "",
+      type: "daily",
+      goal: 1,
+    });
+  };
+
   const dailyTargets = targets.filter((t) => t.type === "daily");
   const weeklyTargets = targets.filter((t) => t.type === "weekly");
   
@@ -171,7 +203,7 @@ const TargetsPage = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => alert("Add target feature coming soon!")}
+              onClick={() => setShowAddModal(true)}
               className="gap-2 border-border"
             >
               <Plus className="w-4 h-4" />
@@ -220,7 +252,10 @@ const TargetsPage = () => {
               <Card className="p-8 text-center bg-card border-border">
                 <p className="text-muted-foreground">No daily targets set yet.</p>
                 <Button
-                  onClick={() => alert("Add target feature coming soon!")}
+                  onClick={() => {
+                    setNewTarget({ ...newTarget, type: "daily" });
+                    setShowAddModal(true);
+                  }}
                   className="mt-4 bg-primary hover:bg-primary/90"
                 >
                   Create Your First Target
@@ -243,7 +278,10 @@ const TargetsPage = () => {
               <Card className="p-8 text-center bg-card border-border">
                 <p className="text-muted-foreground">No weekly targets set yet.</p>
                 <Button
-                  onClick={() => alert("Add target feature coming soon!")}
+                  onClick={() => {
+                    setNewTarget({ ...newTarget, type: "weekly" });
+                    setShowAddModal(true);
+                  }}
                   className="mt-4 bg-success hover:bg-success/90 text-success-foreground"
                 >
                   Create Your First Target
@@ -261,6 +299,108 @@ const TargetsPage = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Add Target Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-fadeIn">
+          <Card className="w-full max-w-md p-6 shadow-soft-lg bg-card border-border">
+            <h3 className="text-lg font-medium text-foreground mb-4">
+              Create New Target
+            </h3>
+            
+            <div className="space-y-4">
+              {/* Title */}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide block mb-2">
+                  Target Title
+                </label>
+                <input
+                  type="text"
+                  value={newTarget.title}
+                  onChange={(e) => setNewTarget({ ...newTarget, title: e.target.value })}
+                  placeholder="e.g., Limit checking to 2 times"
+                  className="w-full p-3 text-sm border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-calm"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide block mb-2">
+                  Description (optional)
+                </label>
+                <textarea
+                  value={newTarget.description}
+                  onChange={(e) => setNewTarget({ ...newTarget, description: e.target.value })}
+                  placeholder="Add more details..."
+                  className="w-full p-3 text-sm border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none transition-calm"
+                  rows={2}
+                />
+              </div>
+
+              {/* Type */}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide block mb-2">
+                  Target Type
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setNewTarget({ ...newTarget, type: "daily" })}
+                    className={`flex-1 p-3 text-sm rounded-md border transition-calm ${
+                      newTarget.type === "daily"
+                        ? "bg-primary/10 border-primary text-primary font-medium"
+                        : "bg-card border-border text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    Daily
+                  </button>
+                  <button
+                    onClick={() => setNewTarget({ ...newTarget, type: "weekly" })}
+                    className={`flex-1 p-3 text-sm rounded-md border transition-calm ${
+                      newTarget.type === "weekly"
+                        ? "bg-success/10 border-success text-success-foreground font-medium"
+                        : "bg-card border-border text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    Weekly
+                  </button>
+                </div>
+              </div>
+
+              {/* Goal */}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide block mb-2">
+                  Goal (times to complete)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={newTarget.goal}
+                  onChange={(e) => setNewTarget({ ...newTarget, goal: parseInt(e.target.value) || 1 })}
+                  className="w-full p-3 text-sm border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-calm"
+                />
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 mt-6">
+              <Button
+                onClick={() => setShowAddModal(false)}
+                variant="outline"
+                className="flex-1 border-border"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddTarget}
+                disabled={!newTarget.title.trim()}
+                className="flex-1 bg-primary hover:bg-primary/90"
+              >
+                Create Target
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

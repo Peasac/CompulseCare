@@ -149,167 +149,180 @@ const WeeklySummaryPage = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-6xl space-y-8">
-        {/* LLM-Generated Summary */}
-        <Card className="p-6 md:p-8 shadow-soft bg-white border-l-4 border-blue-300 hover-lift">
-          <h2 className="text-xl font-medium text-gray-700 mb-4">
-            Your Progress This Week
-          </h2>
-          <p className="text-gray-600 leading-relaxed text-base">
-            {summaryData.textSummary}
+        {/* 1. OVERVIEW SECTION */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-medium text-foreground">
+              Your Progress This Week
+            </h2>
+            {/* Week selector placeholder */}
+            <Button variant="outline" size="sm" className="border-border text-muted-foreground">
+              <Calendar className="w-4 h-4 mr-2" />
+              Last 7 days
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            You're making progress, one step at a time
           </p>
-        </Card>
+        </div>
 
-        {/* Key Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Activity Overview */}
-          <Card className="p-6 shadow-soft bg-white border-gray-100 hover-lift">
-            <h3 className="text-base font-medium text-gray-700 mb-5">
-              Activity Overview
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-gray-50/50 border border-gray-100 rounded-lg">
-                <span className="text-xs text-gray-500 uppercase tracking-wide">Total compulsions</span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-xl font-semibold text-gray-700">
-                    {summaryData.totalCompulsions || 0}
-                  </span>
-                  {summaryData.compulsionChange && summaryData.compulsionChange < 0 && (
-                    <span className="text-xs text-emerald-600">
-                      ↓ {Math.abs(summaryData.compulsionChange)}%
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50/50 border border-gray-100 rounded-lg">
-                <span className="text-xs text-gray-500 uppercase tracking-wide">Avg. time spent</span>
-                <span className="text-xl font-semibold text-gray-700">
-                  {summaryData.avgTimeSpent || 0} <span className="text-sm text-gray-400 font-normal">min</span>
+        {/* 2. DATA & TRENDS SECTION */}
+        <div>
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-4">
+            Data & Trends
+          </h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Compulsions Chart */}
+            <Card className="p-5 shadow-soft bg-card border-border">
+              <h4 className="text-sm font-medium text-foreground mb-4">
+                Daily Compulsions
+              </h4>
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={summaryData.chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis 
+                    dataKey="day" 
+                    stroke="hsl(var(--muted-foreground))"
+                    style={{ fontSize: '12px' }}
+                  />
+                  <YAxis 
+                    stroke="hsl(var(--muted-foreground))"
+                    style={{ fontSize: '12px' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Bar 
+                    dataKey="compulsions" 
+                    fill="hsl(var(--primary))" 
+                    radius={[4, 4, 0, 0]}
+                    name="Compulsions"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+
+            {/* Time Spent Chart */}
+            <Card className="p-5 shadow-soft bg-card border-border">
+              <h4 className="text-sm font-medium text-foreground mb-4">
+                Time Spent (minutes)
+              </h4>
+              <ResponsiveContainer width="100%" height={240}>
+                <LineChart data={summaryData.chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis 
+                    dataKey="day" 
+                    stroke="hsl(var(--muted-foreground))"
+                    style={{ fontSize: '12px' }}
+                  />
+                  <YAxis 
+                    stroke="hsl(var(--muted-foreground))"
+                    style={{ fontSize: '12px' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="timeSpent" 
+                    stroke="hsl(var(--success))" 
+                    strokeWidth={2}
+                    dot={{ fill: 'hsl(var(--success))', r: 4 }}
+                    name="Minutes"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </Card>
+          </div>
+        </div>
+
+        {/* Key Metrics */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="p-4 shadow-soft bg-card border-border">
+            <p className="text-xs text-muted-foreground mb-2">Total Compulsions</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-semibold text-foreground">
+                {summaryData.totalCompulsions || 0}
+              </span>
+              {summaryData.compulsionChange && summaryData.compulsionChange < 0 && (
+                <span className="text-xs text-success">
+                  ↓ {Math.abs(summaryData.compulsionChange)}%
                 </span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50/50 border border-gray-100 rounded-lg">
-                <span className="text-xs text-gray-500 uppercase tracking-wide">Most common</span>
-                <span className="text-sm font-medium text-gray-700">
-                  {summaryData.mostCommonTrigger || "N/A"}
-                </span>
-              </div>
+              )}
             </div>
           </Card>
-
-          {/* Insights */}
-          <Card className="p-6 shadow-soft bg-white border-gray-100 hover-lift">
-            <h3 className="text-base font-medium text-gray-700 mb-5">
-              AI Insights
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-gray-50/50 border border-gray-100 rounded-lg">
-                <span className="text-xs text-gray-500 uppercase tracking-wide">Average mood</span>
-                <span className="text-xl font-semibold text-gray-700">
-                  {summaryData.moodAverage || "N/A"} <span className="text-sm text-gray-400 font-normal">/10</span>
-                </span>
-              </div>
-              <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <span className="text-blue-400 opacity-70">💡</span>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    {summaryData.insights?.[0] || "Keep tracking to get personalized insights."}
-                  </p>
-                </div>
-              </div>
-            </div>
+          <Card className="p-4 shadow-soft bg-card border-border">
+            <p className="text-xs text-muted-foreground mb-2">Avg Time</p>
+            <span className="text-2xl font-semibold text-foreground">
+              {summaryData.avgTimeSpent || 0}<span className="text-sm text-muted-foreground font-normal ml-1">min</span>
+            </span>
+          </Card>
+          <Card className="p-4 shadow-soft bg-card border-border">
+            <p className="text-xs text-muted-foreground mb-2">Avg Mood</p>
+            <span className="text-2xl font-semibold text-foreground">
+              {summaryData.moodAverage || "N/A"}<span className="text-sm text-muted-foreground font-normal">/10</span>
+            </span>
+          </Card>
+          <Card className="p-4 shadow-soft bg-card border-border">
+            <p className="text-xs text-muted-foreground mb-2">Top Trigger</p>
+            <span className="text-sm font-medium text-foreground">
+              {summaryData.mostCommonTrigger || "None"}
+            </span>
           </Card>
         </div>
 
-        {/* Charts Section - More subtle */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Compulsions Chart */}
-          <Card className="p-5 shadow-soft bg-gray-50/30 border-gray-100">
-            <h3 className="text-sm font-medium text-gray-600 mb-4 uppercase tracking-wide">
-              Daily Compulsions
-            </h3>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={summaryData.chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis 
-                  dataKey="day" 
-                  stroke="#6B7280"
-                  style={{ fontSize: '12px' }}
-                />
-                <YAxis 
-                  stroke="#6B7280"
-                  style={{ fontSize: '12px' }}
-                />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #E5E7EB',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Bar 
-                  dataKey="compulsions" 
-                  fill="#3B82F6" 
-                  radius={[8, 8, 0, 0]}
-                  name="Compulsions"
-                />
-              </BarChart>
-            </ResponsiveContainer>
+        {/* 3. AI INSIGHTS SECTION */}
+        <div>
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-4">
+            AI Insights
+          </h3>
+          <Card className="p-6 shadow-soft bg-card border-border">
+            <p className="text-foreground leading-relaxed mb-6">
+              {summaryData.textSummary}
+            </p>
+            {summaryData.insights && summaryData.insights.length > 0 && (
+              <ul className="space-y-3">
+                {summaryData.insights.map((insight, index) => (
+                  <li key={index} className="flex items-start gap-3 p-3 bg-muted/30 rounded-md">
+                    <span className="text-primary text-sm mt-0.5">•</span>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{insight}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Card>
-
-          {/* Time Spent Chart */}
-          <Card className="p-5 shadow-soft bg-gray-50/30 border-gray-100">
-            <h3 className="text-sm font-medium text-gray-600 mb-4 uppercase tracking-wide">
-              Time Spent (minutes)
-            </h3>
-            <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={summaryData.chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-              <XAxis 
-                dataKey="day" 
-                stroke="#6B7280"
-                style={{ fontSize: '12px' }}
-              />
-              <YAxis 
-                stroke="#6B7280"
-                style={{ fontSize: '12px' }}
-              />
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: '#FFFFFF',
-                  border: '1px solid #E5E7EB',
-                  borderRadius: '8px',
-                }}
-              />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="timeSpent" 
-                stroke="#10B981" 
-                strokeWidth={3}
-                dot={{ fill: '#10B981', r: 5 }}
-                name="Minutes"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </Card>
         </div>
 
-        {/* Additional Insights - Full Width */}
-        {summaryData.insights && summaryData.insights.length > 1 && (
-          <Card className="p-6 shadow-soft bg-white border-gray-100 hover-lift">
-            <h3 className="text-sm font-medium text-gray-600 mb-4 flex items-center gap-2 uppercase tracking-wide">
-              <span className="opacity-70">💡</span>
-              More Insights
-            </h3>
-            <ul className="space-y-3">
-              {summaryData.insights.slice(1).map((insight, index) => (
-                <li key={index} className="flex items-start gap-3 p-3 bg-gray-50/50 border border-gray-100 rounded-lg">
-                  <span className="text-blue-400 text-base mt-0.5">•</span>
-                  <p className="text-gray-600 leading-relaxed text-sm">{insight}</p>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        )}
+        {/* 4. ACTIONABLE REFLECTION SECTION */}
+        <Card className="p-6 shadow-soft bg-card border-border">
+          <h3 className="text-sm font-medium text-foreground mb-3">
+            Does this reflect how your week felt?
+          </h3>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              onClick={() => router.push("/journal")}
+              variant="outline"
+              className="border-border"
+            >
+              Log a reflection
+            </Button>
+            <Button
+              onClick={() => router.push("/targets")}
+              variant="outline"
+              className="border-border"
+            >
+              Set a small goal
+            </Button>
+          </div>
+        </Card>
       </main>
     </div>
   );

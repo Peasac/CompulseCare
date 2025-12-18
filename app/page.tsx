@@ -72,167 +72,102 @@ export default function DashboardPage() {
 
         {/* Analytics + Weekly Summary Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-          {/* Analytics Card */}
-          <Card className="p-6 bg-white shadow-soft border-gray-100 hover-lift">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <span className="text-xl opacity-60">📊</span>
-                <h3 className="font-medium text-base text-gray-700">Your Progress</h3>
-              </div>
+          {/* Analytics Card - Preview Only */}
+          <Card className="p-6 bg-card shadow-soft border-border hover-lift cursor-pointer" onClick={() => router.push("/summary")}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-medium text-base text-foreground">Your Progress</h3>
               <Button 
                 variant="ghost" 
                 size="sm"
-                onClick={() => router.push("/summary")}
-                className="text-gray-500 hover:text-gray-700 text-xs"
+                className="text-muted-foreground hover:text-foreground text-xs"
               >
                 Details →
               </Button>
             </div>
 
-            {/* Anxiety Level Trends Chart */}
-            <div className="mb-8">
-              <h4 className="text-xs font-medium text-gray-500 mb-4 uppercase tracking-wide">
-                Anxiety Levels
-              </h4>
-              <div className="h-40 flex items-end justify-between gap-3">
-                {[
-                  { day: "Mon", value: 8 },
-                  { day: "Tue", value: 5 },
-                  { day: "Wed", value: 6 },
-                  { day: "Thu", value: 4 },
-                  { day: "Fri", value: 3 },
-                  { day: "Sat", value: 4 },
-                  { day: "Sun", value: 5 },
-                ].map((item, idx) => (
-                  <div key={idx} className="flex-1 flex flex-col items-center group">
-                    <div
-                      className="w-full bg-blue-200 group-hover:bg-blue-300 rounded-t transition-calm"
-                      style={{ height: `${item.value * 10}%` }}
-                    />
-                    <span className="text-xs text-gray-400 mt-2">{item.day}</span>
+            {/* Mini Metrics Preview */}
+            <div className="space-y-4">
+              {/* Anxiety Trend */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-muted-foreground">Avg Anxiety</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm font-medium text-foreground">4.5/10</span>
+                    <span className="text-xs text-success">↓</span>
                   </div>
-                ))}
+                </div>
+                <div className="h-8 flex items-end gap-1">
+                  {[8, 5, 6, 4, 3, 4, 5].map((value, idx) => (
+                    <div
+                      key={idx}
+                      className="flex-1 bg-primary/20 rounded-sm"
+                      style={{ height: `${value * 10}%` }}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Pause Sessions Chart */}
-            <div>
-              <h4 className="text-xs font-medium text-gray-500 mb-4 uppercase tracking-wide">
-                Pause Sessions
-              </h4>
-              <div className="h-40 flex items-end justify-between gap-3">
-                {[3, 2, 1, 2, 1, 0, 1].map((value, idx) => (
-                  <div key={idx} className="flex-1 flex flex-col items-center group">
-                    <div
-                      className="w-full bg-emerald-200 group-hover:bg-emerald-300 rounded-t transition-calm"
-                      style={{ height: `${value * 33}%` }}
-                    />
-                    <span className="text-xs text-gray-400 mt-2">
-                      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][idx]}
-                    </span>
+              {/* Compulsions Count */}
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Compulsions</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm font-medium text-foreground">42</span>
+                    <span className="text-xs text-success">↓ 30%</span>
                   </div>
-                ))}
+                </div>
+              </div>
+
+              {/* Sessions */}
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Pause Sessions</span>
+                  <span className="text-sm font-medium text-foreground">10</span>
+                </div>
               </div>
             </div>
           </Card>
 
-          {/* Weekly Summary Card */}
-          <Card className="p-6 bg-white shadow-soft border-gray-100 hover-lift">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <span className="text-xl opacity-60">📅</span>
-                <h3 className="font-medium text-base text-gray-700">This Week</h3>
-              </div>
+          {/* This Week Card - Key KPIs Preview */}
+          <Card className="p-6 bg-card shadow-soft border-border hover-lift cursor-pointer" onClick={() => router.push("/summary")}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-medium text-base text-foreground">This Week</h3>
               <Button 
                 variant="ghost" 
                 size="sm"
-                onClick={() => router.push("/summary")}
-                className="text-gray-500 hover:text-gray-700 text-xs"
+                className="text-muted-foreground hover:text-foreground text-xs"
               >
                 Details →
               </Button>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="p-3 bg-gray-50/50 rounded-lg border border-gray-100">
-                <p className="text-xs text-gray-500 mb-1.5">Pause Sessions</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-xl font-semibold text-gray-800">10</span>
-                  <span className="text-xs text-emerald-600 flex items-center">
-                    ↓ 30%
-                  </span>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="p-3 bg-muted/30 rounded-md border border-border">
+                <p className="text-xs text-muted-foreground mb-1">Sessions</p>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg font-semibold text-foreground">10</span>
+                  <span className="text-xs text-success">↓ 30%</span>
                 </div>
               </div>
-              <div className="p-3 bg-gray-50/50 rounded-lg border border-gray-100">
-                <p className="text-xs text-gray-500 mb-1.5">Journal Entries</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-xl font-semibold text-gray-800">6</span>
-                  <span className="text-xs text-emerald-600 flex items-center">
-                    ↑ 20%
-                  </span>
-                </div>
+              <div className="p-3 bg-muted/30 rounded-md border border-border">
+                <p className="text-xs text-muted-foreground mb-1">Completion</p>
+                <span className="text-lg font-semibold text-foreground">85%</span>
               </div>
-              <div className="p-3 bg-gray-50/50 rounded-lg border border-gray-100">
-                <p className="text-xs text-gray-500 mb-1.5">Target Completion</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-xl font-semibold text-gray-800">85%</span>
-                </div>
+              <div className="p-3 bg-muted/30 rounded-md border border-border">
+                <p className="text-xs text-muted-foreground mb-1">Avg Anxiety</p>
+                <span className="text-lg font-semibold text-foreground">4.5/10</span>
               </div>
-              <div className="p-3 bg-gray-50/50 rounded-lg border border-gray-100">
-                <p className="text-xs text-gray-500 mb-1.5">Avg Anxiety</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-xl font-semibold text-gray-800">4.5/10</span>
-                </div>
+              <div className="p-3 bg-muted/30 rounded-md border border-border">
+                <p className="text-xs text-muted-foreground mb-1">Journals</p>
+                <span className="text-lg font-semibold text-foreground">6</span>
               </div>
             </div>
 
-            {/* Insights */}
-            <div className="p-4 bg-blue-50/50 rounded-lg border border-blue-100">
-              <div className="flex items-start gap-2 mb-3">
-                <span className="text-base opacity-70">💡</span>
-                <h4 className="font-medium text-sm text-gray-700">Insights</h4>
-              </div>
-              <ul className="space-y-2 text-xs text-gray-600">
-                <li className="flex items-start gap-2">
-                  <span className="text-gray-400">•</span>
-                  <span>
-                    You reduced checking compulsions by 30% this week—great progress!
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-gray-400">•</span>
-                  <span>
-                    Your anxiety spikes correlate with evening hours. Consider a
-                    wind-down routine.
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-gray-400">•</span>
-                  <span>
-                    Mood improved on days when you completed exposure targets.
-                  </span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Common Triggers */}
-            <div className="mt-6 pt-6 border-t border-gray-100">
-              <h4 className="text-xs font-medium text-gray-500 mb-3 uppercase tracking-wide">
-                Common Triggers
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary" className="bg-gray-50 text-gray-600 border border-gray-200">
-                  Organizing
-                </Badge>
-                <Badge variant="secondary" className="bg-gray-50 text-gray-600 border border-gray-200">
-                  Social Events
-                </Badge>
-                <Badge variant="secondary" className="bg-gray-50 text-gray-600 border border-gray-200">
-                  Work Stress
-                </Badge>
-              </div>
-            </div>
+            {/* Single Line Insight */}
+            <p className="text-xs text-muted-foreground p-3 bg-primary/5 rounded-md border border-primary/10">
+              Compulsions down 30% — your strategies are working
+            </p>
           </Card>
         </div>
 

@@ -1566,6 +1566,12 @@ video {
 .border-success\/40 {
   border-color: hsl(var(--success) / 0.4);
 }
+.border-success {
+  border-color: hsl(var(--success));
+}
+.border-primary\/10 {
+  border-color: hsl(var(--primary) / 0.1);
+}
 .border-l-transparent {
   border-left-color: transparent;
 }
@@ -1760,6 +1766,15 @@ video {
 }
 .bg-success {
   background-color: hsl(var(--success));
+}
+.bg-success\/10 {
+  background-color: hsl(var(--success) / 0.1);
+}
+.bg-primary\/20 {
+  background-color: hsl(var(--primary) / 0.2);
+}
+.bg-primary\/5 {
+  background-color: hsl(var(--primary) / 0.05);
 }
 .bg-gradient-to-br {
   background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
