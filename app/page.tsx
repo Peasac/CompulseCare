@@ -48,17 +48,17 @@ export default function DashboardPage() {
                 
                 {/* Content */}
                 <div className="relative z-10 flex flex-col items-center justify-center h-full p-8">
-                  <div className="mb-6">
+                  {/* <div className="mb-6">
                     <svg className="w-16 h-16 text-pink-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                     </svg>
-                  </div>
+                  </div> */}
                   <h2 className="text-3xl md:text-4xl font-semibold text-pink-800 mb-2">
                     Panic
                   </h2>
-                  <p className="text-pink-700/80 text-center text-sm md:text-base">
+                  {/* <p className="text-pink-700/80 text-center text-sm md:text-base">
                     I need help now
-                  </p>
+                  </p> */}
                 </div>
               </button>
             </div>
@@ -158,99 +158,92 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* Mood Tracker Section */}
-        <Card className="p-6 bg-white shadow-soft border-gray-100 mt-8 hover-lift">
+        {/* Mood Tracker Section - Passive Display Only */}
+        <Card className="p-6 bg-white shadow-soft border-gray-100 mt-8 hover-lift cursor-pointer" onClick={() => router.push("/mood")}>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <span className="text-xl opacity-60">😊</span>
-              <h3 className="font-medium text-base text-gray-700">How Are You Feeling?</h3>
+              <span className="text-2xl">😊</span>
+              <h3 className="font-medium text-base text-gray-700">Emotional Check-In</h3>
             </div>
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={() => router.push("/mood")}
               className="text-gray-500 hover:text-gray-700 text-xs"
             >
-              Details →
+              Track →
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left: Mood Input */}
-            <div>
-              <h4 className="text-xs font-medium text-gray-500 mb-5 uppercase tracking-wide">
-                Right Now
-              </h4>
-              <div className="flex justify-center gap-3 mb-6">
-                {["😢", "😟", "😐", "🙂", "😊"].map((emoji, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => router.push("/mood")}
-                    className="w-12 h-12 rounded-full bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 transition-calm flex items-center justify-center text-2xl"
-                  >
-                    {emoji}
-                  </button>
-                ))}
+          <div className="space-y-4">
+            {/* Current Mood Display - Compact */}
+            <div className="p-3 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">😌</span>
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">Calm</p>
+                    <p className="text-xs text-gray-500">Current mood</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-xl font-semibold text-gray-800">7</span>
+                  <span className="text-xs text-gray-500">/10</span>
+                </div>
               </div>
-
-              <Button 
-                onClick={() => router.push("/mood")}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white transition-calm"
-              >
-                Log Mood
-              </Button>
             </div>
 
-            {/* Right: This Week's Mood */}
+            {/* Weekly Mood Strip - Compact */}
             <div>
-              <h4 className="text-xs font-medium text-gray-500 mb-5 uppercase tracking-wide">
-                This Week
-              </h4>
-              <div className="grid grid-cols-7 gap-2 mb-6">
+              <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">This Week</p>
+              <div className="grid grid-cols-7 gap-1.5">
                 {[
-                  "😊",
-                  "😊",
-                  "😊",
-                  "😊",
-                  "😊",
-                  "😐",
-                  "😟",
-                ].map((emoji, idx) => (
-                  <div
-                    key={idx}
-                    className={`aspect-square rounded-lg flex items-center justify-center text-xl border ${
-                      emoji === "😊"
-                        ? "bg-emerald-50 border-emerald-200"
-                        : emoji === "😐"
-                        ? "bg-blue-50 border-blue-200"
-                        : "bg-pink-50 border-pink-200"
-                    }`}
-                  >
-                    {emoji}
+                  { emoji: "😊", label: "M" },
+                  { emoji: "😌", label: "T" },
+                  { emoji: "😊", label: "W" },
+                  { emoji: "😐", label: "T" },
+                  { emoji: "😌", label: "F" },
+                  { emoji: "😊", label: "S" },
+                  { emoji: "😟", label: "S" },
+                ].map((day, idx) => (
+                  <div key={idx} className="flex flex-col items-center gap-0.5">
+                    <div
+                      className={`w-full aspect-square rounded-md flex items-center justify-center text-lg border ${
+                        day.emoji === "😊" || day.emoji === "😌"
+                          ? "bg-emerald-50 border-emerald-200"
+                          : day.emoji === "😐"
+                          ? "bg-blue-50 border-blue-200"
+                          : "bg-amber-50 border-amber-200"
+                      }`}
+                    >
+                      {day.emoji}
+                    </div>
+                    <span className="text-xs text-gray-400">{day.label}</span>
                   </div>
                 ))}
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between p-3 bg-gray-50/50 border border-gray-100 rounded-lg">
-                  <span className="text-xs text-gray-500">Average Mood</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">😊</span>
-                    <span className="font-medium text-gray-700 text-sm">Calm</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50/50 border border-gray-100 rounded-lg">
-                  <span className="text-xs text-gray-500">Most Frequent</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">😐</span>
-                    <span className="font-medium text-gray-700 text-sm">Neutral</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50/50 border border-gray-100 rounded-lg">
-                  <span className="text-xs text-gray-500">Current Streak</span>
-                  <span className="font-medium text-gray-700 text-sm">5 days</span>
-                </div>
+            {/* Quick Stats - Compact */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="text-center p-2 bg-muted/20 rounded-md">
+                <p className="text-xs text-muted-foreground mb-0.5">Streak</p>
+                <p className="text-base font-semibold text-foreground">5d</p>
               </div>
+              <div className="text-center p-2 bg-muted/20 rounded-md">
+                <p className="text-xs text-muted-foreground mb-0.5">Avg</p>
+                <p className="text-base font-semibold text-foreground">6.8</p>
+              </div>
+              <div className="text-center p-2 bg-muted/20 rounded-md">
+                <p className="text-xs text-muted-foreground mb-0.5">Logged</p>
+                <p className="text-base font-semibold text-foreground">12</p>
+              </div>
+            </div>
+
+            {/* Subtle Correlation Hint */}
+            <div className="p-2 bg-blue-50/50 rounded-md border border-blue-100">
+              <p className="text-xs text-gray-600">
+                💡 Higher mood on days with pause sessions
+              </p>
             </div>
           </div>
         </Card>

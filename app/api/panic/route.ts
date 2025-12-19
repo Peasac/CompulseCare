@@ -32,19 +32,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Connect to database
-    await connectDB();
-
     // Call Gemini API for supportive message
     const contextString = context || `User activated panic button (${triggerType})`;
     const support = await getPanicSupport(contextString);
 
-    // Save panic event to MongoDB
-    await PanicEvent.create({
-      userId,
-      duration: 0,
-      completed: false,
-    });
+    // Connect to database and save event (optional)
+    const conn = await connectDB();
+    if (conn) {
+      try {
+        await PanicEvent.create({
+          userId,
+          duration: 0,
+          completed: false,
+        });
+      } catch (dbError) {
+        console.warn('[Panic API] Failed to save to MongoDB:', dbError);
+      }
+    }
 
     console.log(`[Panic API] User ${userId} activated panic mode: ${triggerType}`);
 

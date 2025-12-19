@@ -1,4 +1,5 @@
 {
-  "/mood/page": "app/mood/page.js",
-  "/page": "app/page.js"
+  "/api/panic/reflect/route": "app/api/panic/reflect/route.js",
+  "/api/panic/route": "app/api/panic/route.js",
+  "/panic/page": "app/panic/page.js"
 }

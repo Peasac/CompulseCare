@@ -5,10 +5,11 @@
 
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI || '';
+const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || '';
 
+// Don't throw error in development - allow app to run without MongoDB
 if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable in .env.local');
+  console.warn('[MongoDB] WARNING: MONGODB_URI or DATABASE_URL not defined. MongoDB features will be disabled.');
 }
 
 /**
@@ -31,6 +32,12 @@ if (!cached) {
 }
 
 async function connectDB() {
+  // If no MongoDB URI, skip connection
+  if (!MONGODB_URI) {
+    console.warn('[MongoDB] Skipping connection - no MONGODB_URI defined');
+    return null;
+  }
+
   if (cached.conn) {
     return cached.conn;
   }
@@ -43,6 +50,10 @@ async function connectDB() {
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
       console.log('[MongoDB] Connected successfully');
       return mongoose;
+    }).catch((error) => {
+      console.error('[MongoDB] Connection failed:', error.message);
+      cached.promise = null;
+      throw error;
     });
   }
 

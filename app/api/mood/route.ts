@@ -34,7 +34,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await connectDB();
+    const conn = await connectDB();
+
+    // If MongoDB not connected, return mock response
+    if (!conn) {
+      console.warn('[Mood API] MongoDB not connected - returning mock response');
+      return NextResponse.json(
+        {
+          id: `mock_${Date.now()}`,
+          userId,
+          emoji,
+          intensity,
+          note,
+          timestamp: timestamp || new Date().toISOString(),
+        },
+        { status: 201 }
+      );
+    }
 
     const newEntry = await Mood.create({
       userId,
@@ -84,7 +100,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    await connectDB();
+    const conn = await connectDB();
+
+    // If MongoDB not connected, return empty array
+    if (!conn) {
+      console.warn('[Mood API] MongoDB not connected - returning empty entries');
+      return NextResponse.json(
+        {
+          entries: [],
+          count: 0,
+        },
+        { status: 200 }
+      );
+    }
 
     const entries = await Mood.find({ userId } as any)
       .sort({ createdAt: -1 })

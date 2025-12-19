@@ -48,29 +48,39 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    await connectDB();
+    const conn = await connectDB();
 
     // Fetch user's journal entries from last 7 days
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const [entries, moods, targets, panicEvents] = await Promise.all([
-      JournalEntry.find({
-        userId,
-        createdAt: { $gte: sevenDaysAgo },
-      } as any)
-        .sort({ createdAt: 1 })
-        .lean(),
-      Mood.find({
-        userId,
-        createdAt: { $gte: sevenDaysAgo },
-      } as any).lean(),
-      Target.find({ userId } as any).lean(),
-      PanicEvent.find({
-        userId,
-        createdAt: { $gte: sevenDaysAgo },
-      } as any).lean(),
-    ]);
+    let entries: any[] = [];
+    let moods: any[] = [];
+    let targets: any[] = [];
+    let panicEvents: any[] = [];
+
+    // If MongoDB connected, fetch real data
+    if (conn) {
+      [entries, moods, targets, panicEvents] = await Promise.all([
+        JournalEntry.find({
+          userId,
+          createdAt: { $gte: sevenDaysAgo },
+        } as any)
+          .sort({ createdAt: 1 })
+          .lean(),
+        Mood.find({
+          userId,
+          createdAt: { $gte: sevenDaysAgo },
+        } as any).lean(),
+        Target.find({ userId } as any).lean(),
+        PanicEvent.find({
+          userId,
+          createdAt: { $gte: sevenDaysAgo },
+        } as any).lean(),
+      ]);
+    } else {
+      console.warn('[Summary API] MongoDB not connected - using empty data');
+    }
 
     // Aggregate data
     const totalCompulsions = entries.length;

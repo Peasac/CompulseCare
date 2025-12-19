@@ -28,7 +28,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    await connectDB();
+    const conn = await connectDB();
+
+    // If MongoDB not connected, return empty array
+    if (!conn) {
+      console.warn('[Targets API] MongoDB not connected - returning empty targets');
+      return NextResponse.json(
+        {
+          targets: [],
+          count: 0,
+        },
+        { status: 200 }
+      );
+    }
 
     const targets = await Target.find({ userId } as any)
       .sort({ createdAt: -1 })
@@ -89,7 +101,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await connectDB();
+    const conn = await connectDB();
+
+    // If MongoDB not connected, return mock response
+    if (!conn) {
+      console.warn('[Targets API] MongoDB not connected - returning mock response');
+      return NextResponse.json(
+        {
+          id: `mock_${Date.now()}`,
+          userId,
+          title,
+          description,
+          type,
+          progress: 0,
+          goal,
+          current: 0,
+          completed: false,
+          createdAt: new Date().toISOString(),
+        },
+        { status: 201 }
+      );
+    }
 
     const newTarget = await Target.create({
       userId,

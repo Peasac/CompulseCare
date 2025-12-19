@@ -154,49 +154,50 @@ const MoodTrackerPage = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-2xl">
-        {/* Mood Logger */}
-        <Card className="p-6 mb-8 shadow-lg">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Log Your Mood
-          </h2>
-
-          {/* Emoji Selection */}
+      <main className="container mx-auto px-4 py-6 max-w-2xl space-y-8">
+        {/* SECTION 1: Mood Selection */}
+        <Card className="p-6 shadow-lg">
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Select your mood <span className="text-red-500">*</span>
-            </label>
-            <div className="grid grid-cols-4 gap-3">
-              {MOOD_OPTIONS.map((mood) => (
-                <button
-                  key={mood.emoji}
-                  onClick={() => setSelectedMood(mood.emoji)}
-                  className={`
-                    ${mood.color}
-                    ${selectedMood === mood.emoji ? "ring-4 ring-[#2563EB] scale-105" : ""}
-                    rounded-xl p-4 flex flex-col items-center gap-2 
-                    transition-all cursor-pointer
-                    hover:scale-105
-                  `}
-                  aria-label={mood.label}
-                >
-                  <span className="text-3xl">{mood.emoji}</span>
-                  <span className="text-xs font-medium text-gray-700">
-                    {mood.label}
-                  </span>
-                </button>
-              ))}
-            </div>
+            <h2 className="text-lg font-semibold text-gray-800 mb-1">How are you feeling?</h2>
+            <p className="text-sm text-gray-500">Select the mood that best describes your current state</p>
           </div>
 
-          {/* Intensity Slider */}
-          {selectedMood && (
-            <div className="mb-6 animate-fadeIn">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Intensity
+          {/* Emoji Selection Grid */}
+          <div className="grid grid-cols-4 gap-3">
+            {MOOD_OPTIONS.map((mood) => (
+              <button
+                key={mood.emoji}
+                onClick={() => setSelectedMood(mood.emoji)}
+                className={`
+                  ${mood.color}
+                  ${selectedMood === mood.emoji ? "ring-4 ring-[#2563EB] scale-105 shadow-lg" : "shadow-sm"}
+                  rounded-xl p-4 flex flex-col items-center gap-2 
+                  transition-all duration-200
+                  hover:scale-105 hover:shadow-md
+                `}
+                aria-label={mood.label}
+              >
+                <span className="text-3xl">{mood.emoji}</span>
+                <span className="text-xs font-medium text-gray-700">
+                  {mood.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </Card>
+
+        {/* SECTION 2: Intensity & Notes (appears after selection) */}
+        {selectedMood && (
+          <Card className="p-6 shadow-lg animate-fadeIn">
+            <h3 className="text-base font-semibold text-gray-800 mb-5">Tell us more</h3>
+
+            {/* Intensity Slider */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-4">
+                How intense is this feeling?
               </label>
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-600 min-w-[3rem]">Low</span>
+              <div className="flex items-center gap-4 mb-3">
+                <span className="text-sm text-gray-500 min-w-[3rem]">Low</span>
                 <Slider
                   value={intensity}
                   onValueChange={setIntensity}
@@ -205,18 +206,16 @@ const MoodTrackerPage = () => {
                   step={1}
                   className="flex-1"
                 />
-                <span className="text-sm text-gray-600 min-w-[3rem] text-right">High</span>
+                <span className="text-sm text-gray-500 min-w-[3rem] text-right">High</span>
               </div>
-              <div className="text-center mt-2">
+              <div className="text-center p-4 bg-muted/20 rounded-lg">
                 <span className="text-4xl font-bold text-[#2563EB]">{intensity[0]}</span>
-                <span className="text-gray-500 text-sm">/10</span>
+                <span className="text-gray-500 text-lg">/10</span>
               </div>
             </div>
-          )}
 
-          {/* Optional Note */}
-          {selectedMood && (
-            <div className="mb-6 animate-fadeIn">
+            {/* Optional Note */}
+            <div>
               <label htmlFor="moodNote" className="block text-sm font-medium text-gray-700 mb-2">
                 Add a note (optional)
               </label>
@@ -225,63 +224,82 @@ const MoodTrackerPage = () => {
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 maxLength={200}
-                placeholder="What's on your mind?"
-                className="resize-none h-20"
+                placeholder="What's on your mind? What might have contributed to this mood?"
+                className="resize-none h-24"
               />
+              <p className="text-xs text-gray-400 mt-1 text-right">{note.length}/200</p>
             </div>
-          )}
+          </Card>
+        )}
 
-          {/* Submit Button */}
-          <Button
-            onClick={handleSubmit}
-            disabled={isSubmitting || !selectedMood}
-            className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white h-12 text-base font-semibold"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-5 h-5 mr-2" />
-                Log Mood
-              </>
-            )}
-          </Button>
-        </Card>
+        {/* SECTION 3: Submit Button (prominent when ready) */}
+        {selectedMood && (
+          <div className="animate-fadeIn">
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white h-14 text-base font-semibold shadow-lg"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5 mr-2" />
+                  Save Mood Entry
+                </>
+              )}
+            </Button>
+          </div>
+        )}
 
-        {/* Mood History */}
-        <div>
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Recent Moods
-          </h2>
+        {/* SECTION 4: Mood History */}
+        <div className="pt-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-800">
+              Recent Entries
+            </h2>
+            <span className="text-xs text-gray-500">{moodHistory.length} total</span>
+          </div>
 
           {isLoadingHistory ? (
-            <div className="flex justify-center py-8">
+            <div className="flex justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
             </div>
           ) : moodHistory.length === 0 ? (
-            <Card className="p-8 text-center">
-              <p className="text-gray-500">No mood entries yet. Log your first mood above!</p>
+            <Card className="p-10 text-center bg-muted/20">
+              <div className="text-4xl mb-3">📝</div>
+              <p className="text-gray-500 text-sm">No entries yet. Log your first mood above to start tracking!</p>
             </Card>
           ) : (
             <div className="space-y-3">
               {moodHistory.map((entry) => (
-                <Card key={entry.id} className="p-4 shadow-sm hover:shadow-md transition-shadow">
+                <Card key={entry.id} className="p-5 shadow-sm hover:shadow-md transition-all border-l-4 border-l-transparent hover:border-l-[#2563EB]">
                   <div className="flex items-start gap-4">
-                    <span className="text-4xl">{entry.emoji}</span>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium text-gray-800">
-                          Intensity: {entry.intensity}/10
-                        </span>
+                    <div className="flex-shrink-0">
+                      <span className="text-5xl">{entry.emoji}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <span className="text-base font-semibold text-gray-800">
+                            {entry.intensity}/10
+                          </span>
+                          <div className="h-2 w-24 bg-gray-100 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-[#2563EB] rounded-full transition-all"
+                              style={{ width: `${(entry.intensity / 10) * 100}%` }}
+                            />
+                          </div>
+                        </div>
                         <span className="text-xs text-gray-500">
                           {formatDistanceToNow(new Date(entry.timestamp), { addSuffix: true })}
                         </span>
                       </div>
                       {entry.note && (
-                        <p className="text-sm text-gray-600">{entry.note}</p>
+                        <p className="text-sm text-gray-600 leading-relaxed">{entry.note}</p>
                       )}
                     </div>
                   </div>
