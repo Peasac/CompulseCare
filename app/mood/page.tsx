@@ -51,38 +51,16 @@ const MoodTrackerPage = () => {
     setIsLoadingHistory(true);
     
     try {
-      // TODO: Fetch from API
-      // const response = await fetch("/api/mood?userId=user123&limit=10");
-      // const data = await response.json();
-      // setMoodHistory(data.entries);
-
-      // MOCK DATA
-      const mockHistory: MoodEntry[] = [
-        {
-          id: "m1",
-          emoji: "😌",
-          intensity: 7,
-          note: "Finished a breathing exercise, feeling better",
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        },
-        {
-          id: "m2",
-          emoji: "😟",
-          intensity: 4,
-          note: "Morning anxiety about work",
-          timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-        },
-        {
-          id: "m3",
-          emoji: "😊",
-          intensity: 8,
-          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        },
-      ];
-
-      setMoodHistory(mockHistory);
+      const response = await fetch("/api/mood?userId=user123&limit=10");
+      if (response.ok) {
+        const data = await response.json();
+        setMoodHistory(data.entries || []);
+      } else {
+        throw new Error("Failed to fetch mood history");
+      }
     } catch (error) {
       console.error("Failed to fetch mood history:", error);
+      setMoodHistory([]);
     } finally {
       setIsLoadingHistory(false);
     }

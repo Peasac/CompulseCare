@@ -47,92 +47,61 @@ const TargetsPage = () => {
     setIsLoading(true);
     
     try {
-      // TODO: Fetch from API
-      // const response = await fetch("/api/targets?userId=user123");
-      // const data = await response.json();
-      // setTargets(data.targets);
-
-      // MOCK DATA
-      const mockTargets: Target[] = [
-        {
-          id: "t1",
-          title: "No checking rituals",
-          description: "Complete the day without checking locks/stove",
-          type: "daily",
-          progress: 85,
-          goal: 1,
-          current: 0,
-          completed: false,
-          deadline: "Today, 11:59 PM",
-        },
-        {
-          id: "t2",
-          title: "Journal 3 times",
-          description: "Log compulsions as they happen",
-          type: "daily",
-          progress: 67,
-          goal: 3,
-          current: 2,
-          completed: false,
-          deadline: "Today, 11:59 PM",
-        },
-        {
-          id: "t3",
-          title: "Practice breathing",
-          description: "Use breathing exercises when anxious",
-          type: "daily",
-          progress: 100,
-          goal: 2,
-          current: 2,
-          completed: true,
-        },
-        {
-          id: "t4",
-          title: "Reduce checking by 30%",
-          description: "Compared to last week's average",
-          type: "weekly",
-          progress: 70,
-          goal: 30,
-          current: 21,
-          completed: false,
-          deadline: "Sunday, 11:59 PM",
-        },
-        {
-          id: "t5",
-          title: "7-day streak",
-          description: "Use CompulseCare every day",
-          type: "weekly",
-          progress: 71,
-          goal: 7,
-          current: 5,
-          completed: false,
-          deadline: "Sunday, 11:59 PM",
-        },
-      ];
-
-      setTargets(mockTargets);
+      const response = await fetch("/api/targets?userId=user123");
+      if (response.ok) {
+        const data = await response.json();
+        // Transform API data to match component expectations
+        const transformedTargets: Target[] = (data.targets || []).map((t: any) => ({
+          id: t._id || t.id,
+          title: t.title,
+          description: t.description,
+          type: t.type,
+          progress: t.completed ? 100 : 0,
+          goal: t.goal || 1,
+          current: t.completed ? (t.goal || 1) : 0,
+          completed: t.completed,
+          deadline: t.type === "daily" ? "Today, 11:59 PM" : "Sunday, 11:59 PM",
+        }));
+        setTargets(transformedTargets);
+      } else {
+        throw new Error("Failed to fetch targets");
+      }
     } catch (error) {
       console.error("Failed to fetch targets:", error);
+      setTargets([]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleCompleteTarget = async (targetId: string) => {
+    const target = targets.find((t) => t.id === targetId);
+    if (!target) return;
+
     try {
-      // TODO: Send PATCH to API
-      // await fetch(`/api/targets/${targetId}`, {
-      //   method: "PATCH",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ completed: true }),
-      // });
+      const response = await fetch("/api/targets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: "user123",
+          title: target.title,
+          description: target.description,
+          type: target.type,
+          goal: target.goal,
+          completed: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to complete target");
+      }
 
       // Update local state
       setTargets((prev) =>
-        prev.map((target) =>
-          target.id === targetId
-            ? { ...target, completed: true, progress: 100, current: target.goal }
-            : target
+        prev.map((t) =>
+          t.id === targetId
+            ? { ...t, completed: true, progress: 100, current: t.goal }
+            : t
         )
       );
     } catch (error) {

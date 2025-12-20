@@ -17,8 +17,7 @@ import PanicEvent from "@/lib/models/PanicEvent";
  * - insights: [patterns noticed, suggestion for next week] (from LLM)
  * 
  * LLM generates reflection once per week using pre-aggregated stats only
- * TODO: Query database for user's weekly data
- * TODO: Add caching (Redis) for expensive LLM calls
+ * Caches AI responses in-memory to prevent repeated generation
  */
 
 interface WeeklySummaryResponse {
@@ -36,6 +35,10 @@ interface WeeklySummaryResponse {
   insights: string[]; // [patterns, suggestion]
 }
 
+// In-memory cache for AI reflections (keyed by userId + timestamp)
+const summaryCache = new Map<string, { data: WeeklySummaryResponse; timestamp: number }>();
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -46,6 +49,19 @@ export async function GET(request: NextRequest) {
         { error: "userId query parameter is required" },
         { status: 400 }
       );
+    }
+
+    // Check cache first
+    const cacheKey = `summary_${userId}`;
+    const cached = summaryCache.get(cacheKey);
+    const now = Date.now();
+
+    if (cached && now - cached.timestamp < CACHE_TTL) {
+      console.log(`[Summary API] Returning cached summary for user ${userId}`);
+      return NextResponse.json(cached.data, {
+        status: 200,
+        headers: { "X-Cache": "HIT" },
+      });
     }
 
     const conn = await connectDB();
@@ -171,6 +187,8 @@ Keep tone positive, validating, and hopeful. Focus on patterns and small wins.`;
 
     // Calculate average anxiety from journal entries
     const avgAnxiety =
+    // Calculate average anxiety from journal entries
+    const avgAnxiety =
       entries.length > 0
         ? entries.reduce((sum: number, e: any) => sum + (e.anxietyLevel || 0), 0) / entries.length
         : 0;
@@ -198,9 +216,18 @@ Keep tone positive, validating, and hopeful. Focus on patterns and small wins.`;
       insights: [reflection.patterns, reflection.suggestion],
     };
 
-    console.log(`[Summary API] Generated weekly summary for user ${userId}`);
+    // Cache the response
+    summaryCache.set(cacheKey, {
+      data: response,
+      timestamp: now,
+    });
 
-    return NextResponse.json(response, { status: 200 });
+    console.log(`[Summary API] Generated and cached weekly summary for user ${userId}`);
+
+    return NextResponse.json(response, {
+      status: 200,
+      headers: { "X-Cache": "MISS" },
+    });
 
   } catch (error) {
     console.error("[Summary API] Error:", error);

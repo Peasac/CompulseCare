@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Clock, List, TrendingUp } from "lucide-react";
+import { Clock, List } from "lucide-react";
 
 interface CompulsionLoggerProps {
   onLogSubmit?: (entry: CompulsionEntry) => void;
@@ -27,30 +27,81 @@ export default function CompulsionLoggerWidget({ onLogSubmit }: CompulsionLogger
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [hours, setHours] = useState("");
   const [minutes, setMinutes] = useState("");
-  const [todayTotal, setTodayTotal] = useState(15); // Mock data
-  const [recentEntries, setRecentEntries] = useState([
-    { activity: "Checked door locks", category: "Checking", time: "15m", timestamp: "Today" },
-  ]);
+  const [anxietyLevel, setAnxietyLevel] = useState("5");
+  const [todayTotal, setTodayTotal] = useState(0);
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = () => {
+  // Fetch today's total time
+  useEffect(() => {
+    async function fetchTodayTotal() {
+      try {
+        const response = await fetch("/api/journal?userId=user123&limit=100");
+        if (response.ok) {
+          const data = await response.json();
+          const today = new Date().toDateString();
+          const todayEntries = data.entries.filter((e: any) => {
+            return new Date(e.createdAt).toDateString() === today;
+          });
+          const total = todayEntries.reduce((sum: number, e: any) => sum + (e.timeSpent || 0), 0);
+          setTodayTotal(total);
+        }
+      } catch (error) {
+        console.error("Failed to fetch today's total:", error);
+      }
+    }
+
+    fetchTodayTotal();
+  }, []);
+
+  const handleSubmit = async () => {
     if (!activity || !selectedCategory) return;
 
-    const entry: CompulsionEntry = {
-      activity,
-      category: selectedCategory,
-      hours: parseInt(hours) || 0,
-      minutes: parseInt(minutes) || 0,
-    };
+    setSaving(true);
 
-    // TODO: Call API to save entry
-    console.log("Logging compulsion:", entry);
-    onLogSubmit?.(entry);
+    try {
+      const totalMinutes = (parseInt(hours) || 0) * 60 + (parseInt(minutes) || 0);
 
-    // Reset form
-    setActivity("");
-    setSelectedCategory(null);
-    setHours("");
-    setMinutes("");
+      const response = await fetch("/api/journal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: "user123",
+          compulsion: activity,
+          triggers: [selectedCategory],
+          timeSpent: totalMinutes,
+          anxietyLevel: parseInt(anxietyLevel),
+          notes: "",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save entry");
+      }
+
+      // Update today's total
+      setTodayTotal((prev) => prev + totalMinutes);
+
+      // Notify parent if needed
+      const entry: CompulsionEntry = {
+        activity,
+        category: selectedCategory,
+        hours: parseInt(hours) || 0,
+        minutes: parseInt(minutes) || 0,
+      };
+      onLogSubmit?.(entry);
+
+      // Reset form
+      setActivity("");
+      setSelectedCategory(null);
+      setHours("");
+      setMinutes("");
+      setAnxietyLevel("5");
+    } catch (error) {
+      console.error("Failed to save compulsion:", error);
+      alert("Failed to save entry. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -137,9 +188,9 @@ export default function CompulsionLoggerWidget({ onLogSubmit }: CompulsionLogger
       <Button
         onClick={handleSubmit}
         className="w-full bg-blue-500 hover:bg-blue-600 text-white transition-calm disabled:opacity-50"
-        disabled={!activity || !selectedCategory}
+        disabled={!activity || !selectedCategory || saving}
       >
-        Save Entry
+        {saving ? "Saving..." : "Save Entry"}
       </Button>
 
       {/* Today's Total */}
@@ -147,8 +198,9 @@ export default function CompulsionLoggerWidget({ onLogSubmit }: CompulsionLogger
         <p className="text-xs text-gray-500 text-center uppercase tracking-wide">Today's Total</p>
         <p className="text-2xl font-semibold text-center mt-1 text-gray-700">{todayTotal}m</p>
       </div>
-
-      {/* Recent Entries */}
+    </Card>
+  );
+}      {/* Recent Entries */}
       {recentEntries.length > 0 && (
         <div className="mt-4 space-y-2">
           {recentEntries.map((entry, idx) => (
