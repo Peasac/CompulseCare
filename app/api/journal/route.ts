@@ -20,7 +20,10 @@ import { JournalEntry } from "@/lib/models";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, triggers, note, timeSpent, timestamp, mood } = body;
+    const { userId, triggers, note, compulsion, timeSpent, timestamp, mood, anxietyLevel, notes } = body;
+
+    // Use compulsion field if provided, otherwise fall back to note
+    const activityText = compulsion || note || "No description";
 
     // Validation
     if (!userId || !triggers || !Array.isArray(triggers) || triggers.length === 0) {
@@ -47,7 +50,8 @@ export async function POST(request: NextRequest) {
         id: `mock_${Date.now()}`,
         userId,
         triggers,
-        note: note || "",
+        note: activityText,
+        compulsion: activityText,
         timeSpent,
         timestamp: timestamp || new Date().toISOString(),
         mood: mood,
@@ -57,23 +61,26 @@ export async function POST(request: NextRequest) {
     // Create new entry in MongoDB
     const newEntry = await JournalEntry.create({
       userId,
-      compulsion: note || "Compulsion logged",
+      compulsion: activityText,
       triggers,
       timeSpent,
-      anxietyLevel: mood ? parseInt(mood) : undefined,
-      notes: note,
+      anxietyLevel: anxietyLevel || (mood ? parseInt(mood) : undefined),
+      notes: notes || note || "",
     });
 
     console.log(`[Journal API] New entry created for user ${userId}: ${newEntry._id}`);
 
     return NextResponse.json({
-      id: newEntry._id.toString(),
-      userId: newEntry.userId,
-      triggers: newEntry.triggers,
-      note: newEntry.notes || "",
-      timeSpent: newEntry.timeSpent,
-      timestamp: newEntry.createdAt.toISOString(),
-      mood: mood,
+      entry: {
+        _id: newEntry._id.toString(),
+        userId: newEntry.userId,
+        compulsion: newEntry.compulsion,
+        triggers: newEntry.triggers,
+        timeSpent: newEntry.timeSpent,
+        anxietyLevel: newEntry.anxietyLevel,
+        notes: newEntry.notes || "",
+        createdAt: newEntry.createdAt.toISOString(),
+      }
     }, { status: 201 });
 
   } catch (error) {
@@ -128,11 +135,15 @@ export async function GET(request: NextRequest) {
     const userEntries = entries.map((entry: any) => ({
       id: entry._id.toString(),
       userId: entry.userId,
+      activity: entry.compulsion || "No description",
+      compulsion: entry.compulsion || "No description",
+      category: entry.triggers?.[0] || "Other",
       triggers: entry.triggers,
-      note: entry.notes || "",
+      notes: entry.notes || "",
       timeSpent: entry.timeSpent,
       timestamp: entry.createdAt.toISOString(),
-      mood: entry.anxietyLevel?.toString(),
+      createdAt: entry.createdAt.toISOString(),
+      anxietyLevel: entry.anxietyLevel,
     }));
 
     return NextResponse.json(

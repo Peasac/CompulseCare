@@ -83,6 +83,7 @@ export default function DashboardPage() {
   };
 
   return (
+    
     <div className="min-h-screen bg-[#F5F6FA] flex flex-col">
       {/* Header */}
       <Header userName={userName} showExport={true} />
@@ -320,11 +321,6 @@ export default function DashboardPage() {
                 <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">This Week</p>
                 <div className="grid grid-cols-7 gap-1.5">
                   {dashboardData.mood.weeklyStrip.map((mood, idx) => (
-              {/* Weekly Mood Strip - Compact */}
-              <div>
-                <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">This Week</p>
-                <div className="grid grid-cols-7 gap-1.5">
-                  {dashboardData.mood.weeklyStrip.map((mood, idx) => (
                     <div
                       key={idx}
                       className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-md border border-gray-100 hover:bg-gray-100 transition-calm"
@@ -366,62 +362,6 @@ export default function DashboardPage() {
               )}
             </div>
           )}
-        </Card>
-      </main>
-
-      {/* Footer */}
-      <Footer />
-    </div>
-  );
-}
-                  { emoji: "😌", label: "T" },
-                  { emoji: "😊", label: "W" },
-                  { emoji: "😐", label: "T" },
-                  { emoji: "😌", label: "F" },
-                  { emoji: "😊", label: "S" },
-                  { emoji: "😟", label: "S" },
-                ].map((day, idx) => (
-                  <div key={idx} className="flex flex-col items-center gap-0.5">
-                    <div
-                      className={`w-full aspect-square rounded-md flex items-center justify-center text-lg border ${
-                        day.emoji === "😊" || day.emoji === "😌"
-                          ? "bg-emerald-50 border-emerald-200"
-                          : day.emoji === "😐"
-                          ? "bg-blue-50 border-blue-200"
-                          : "bg-amber-50 border-amber-200"
-                      }`}
-                    >
-                      {day.emoji}
-                    </div>
-                    <span className="text-xs text-gray-400">{day.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Quick Stats - Compact */}
-            <div className="grid grid-cols-3 gap-2">
-              <div className="text-center p-2 bg-muted/20 rounded-md">
-                <p className="text-xs text-muted-foreground mb-0.5">Streak</p>
-                <p className="text-base font-semibold text-foreground">5d</p>
-              </div>
-              <div className="text-center p-2 bg-muted/20 rounded-md">
-                <p className="text-xs text-muted-foreground mb-0.5">Avg</p>
-                <p className="text-base font-semibold text-foreground">6.8</p>
-              </div>
-              <div className="text-center p-2 bg-muted/20 rounded-md">
-                <p className="text-xs text-muted-foreground mb-0.5">Logged</p>
-                <p className="text-base font-semibold text-foreground">12</p>
-              </div>
-            </div>
-
-            {/* Subtle Correlation Hint */}
-            <div className="p-2 bg-blue-50/50 rounded-md border border-blue-100">
-              <p className="text-xs text-gray-600">
-                💡 Higher mood on days with pause sessions
-              </p>
-            </div>
-          </div>
         </Card>
       </main>
 

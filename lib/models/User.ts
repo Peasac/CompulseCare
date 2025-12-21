@@ -2,10 +2,10 @@
  * User Model
  */
 
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 
 export interface IUser extends Document {
-  _id: string;
+  _id: Types.ObjectId;
   email: string;
   name?: string;
   createdAt: Date;

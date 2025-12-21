@@ -12,6 +12,13 @@ if (!MONGODB_URI) {
   console.warn('[MongoDB] WARNING: MONGODB_URI or DATABASE_URL not defined. MongoDB features will be disabled.');
 }
 
+type MongooseConnection = typeof mongoose;
+
+interface MongooseCache {
+  conn: MongooseConnection | null;
+  promise: Promise<MongooseConnection> | null;
+}
+
 /**
  * Global is used here to maintain a cached connection across hot reloads
  * in development. This prevents connections growing exponentially
@@ -19,19 +26,16 @@ if (!MONGODB_URI) {
  */
 declare global {
   // eslint-disable-next-line no-var
-  var mongoose: {
-    conn: typeof mongoose | null;
-    promise: Promise<typeof mongoose> | null;
-  };
+  var mongoose: MongooseCache | undefined;
 }
 
-let cached = global.mongoose;
+let cached: MongooseCache = global.mongoose || { conn: null, promise: null };
 
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+if (!global.mongoose) {
+  global.mongoose = cached;
 }
 
-async function connectDB() {
+async function connectDB(): Promise<MongooseConnection | null> {
   // If no MongoDB URI, skip connection
   if (!MONGODB_URI) {
     console.warn('[MongoDB] Skipping connection - no MONGODB_URI defined');
@@ -47,14 +51,16 @@ async function connectDB() {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      console.log('[MongoDB] Connected successfully');
-      return mongoose;
-    }).catch((error) => {
-      console.error('[MongoDB] Connection failed:', error.message);
-      cached.promise = null;
-      throw error;
-    });
+    cached.promise = mongoose.connect(MONGODB_URI, opts)
+      .then((mongooseInstance) => {
+        console.log('[MongoDB] Connected successfully');
+        return mongooseInstance;
+      })
+      .catch((error) => {
+        console.error('[MongoDB] Connection failed:', error.message);
+        cached.promise = null;
+        throw error;
+      });
   }
 
   try {

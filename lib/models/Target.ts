@@ -2,10 +2,10 @@
  * Target Model - Daily and weekly goals
  */
 
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 
 export interface ITarget extends Document {
-  _id: string;
+  _id: Types.ObjectId;
   userId: string;
   title: string;
   description?: string;

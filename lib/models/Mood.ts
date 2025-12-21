@@ -2,10 +2,10 @@
  * Mood Model - Emotional state tracking
  */
 
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 
 export interface IMood extends Document {
-  _id: string;
+  _id: Types.ObjectId;
   userId: string;
   mood: string; // emoji or text representation
   intensity: number; // 1-10

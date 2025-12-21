@@ -2,10 +2,10 @@
  * PanicEvent Model - Panic button usage tracking
  */
 
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 
 export interface IPanicEvent extends Document {
-  _id: string;
+  _id: Types.ObjectId;
   userId: string;
   duration: number; // seconds spent in breathing exercise
   completed: boolean; // whether user completed the breathing

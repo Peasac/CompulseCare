@@ -187,8 +187,6 @@ Keep tone positive, validating, and hopeful. Focus on patterns and small wins.`;
 
     // Calculate average anxiety from journal entries
     const avgAnxiety =
-    // Calculate average anxiety from journal entries
-    const avgAnxiety =
       entries.length > 0
         ? entries.reduce((sum: number, e: any) => sum + (e.anxietyLevel || 0), 0) / entries.length
         : 0;

@@ -30,36 +30,45 @@ export default function CompulsionLoggerWidget({ onLogSubmit }: CompulsionLogger
   const [anxietyLevel, setAnxietyLevel] = useState("5");
   const [todayTotal, setTodayTotal] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [recentEntries, setRecentEntries] = useState<any[]>([]);
 
-  // Fetch today's total time
+  // Fetch today's total time and recent entries
   useEffect(() => {
-    async function fetchTodayTotal() {
-      try {
-        const response = await fetch("/api/journal?userId=user123&limit=100");
-        if (response.ok) {
-          const data = await response.json();
-          const today = new Date().toDateString();
-          const todayEntries = data.entries.filter((e: any) => {
-            return new Date(e.createdAt).toDateString() === today;
-          });
-          const total = todayEntries.reduce((sum: number, e: any) => sum + (e.timeSpent || 0), 0);
-          setTodayTotal(total);
-        }
-      } catch (error) {
-        console.error("Failed to fetch today's total:", error);
-      }
-    }
-
-    fetchTodayTotal();
+    console.log('[CompulsionLogger] 🎬 Component mounted, fetching initial data');
+    fetchData();
   }, []);
+
+  async function fetchData() {
+    console.log('[CompulsionLogger] 🔄 fetchData() called');
+    try {
+      const response = await fetch("/api/journal?userId=user123&limit=100");
+      if (response.ok) {
+        const data = await response.json();
+        const today = new Date().toDateString();
+        const todayEntries = data.entries.filter((e: any) => {
+          return new Date(e.createdAt).toDateString() === today;
+        });
+        console.log('[CompulsionLogger] 📅 Today\'s entries from API:', todayEntries.length);
+        const total = todayEntries.reduce((sum: number, e: any) => sum + (e.timeSpent || 0), 0);
+        console.log('[CompulsionLogger] 📊 Setting todayTotal to:', total);
+        setTodayTotal(total);
+        console.log('[CompulsionLogger] 📋 Setting recentEntries to:', todayEntries.slice(0, 3).length, 'items');
+        setRecentEntries(todayEntries.slice(0, 3)); // Show last 3 today's entries
+      }
+    } catch (error) {
+      console.error('[CompulsionLogger] ❌ Failed to fetch data:', error);
+    }
+  }
 
   const handleSubmit = async () => {
     if (!activity || !selectedCategory) return;
 
+    console.log('[CompulsionLogger] 🚀 Starting submit...', { activity, selectedCategory });
     setSaving(true);
 
     try {
       const totalMinutes = (parseInt(hours) || 0) * 60 + (parseInt(minutes) || 0);
+      console.log('[CompulsionLogger] ⏱️ Total minutes:', totalMinutes);
 
       const response = await fetch("/api/journal", {
         method: "POST",
@@ -78,8 +87,32 @@ export default function CompulsionLoggerWidget({ onLogSubmit }: CompulsionLogger
         throw new Error("Failed to save entry");
       }
 
-      // Update today's total
-      setTodayTotal((prev) => prev + totalMinutes);
+      const savedEntry = await response.json();
+      console.log('[CompulsionLogger] 📥 API Response:', savedEntry);
+
+      // Update UI with the saved entry
+      const newEntry = savedEntry.entry;
+      console.log('[CompulsionLogger] 📝 New entry to add:', newEntry);
+      
+      if (!newEntry) {
+        console.error('[CompulsionLogger] ❌ No entry in response!', savedEntry);
+        throw new Error('Invalid API response structure');
+      }
+
+      console.log('[CompulsionLogger] 🔢 Previous recentEntries:', recentEntries.length);
+      
+      setTodayTotal((prev) => {
+        console.log('[CompulsionLogger] 📊 Updating todayTotal:', prev, '->', prev + totalMinutes);
+        return prev + totalMinutes;
+      });
+      
+      setRecentEntries((prev) => {
+        const updated = [newEntry, ...prev];
+        const final = updated.slice(0, 3);
+        console.log('[CompulsionLogger] 📋 Updating recentEntries:', prev.length, '->', final.length);
+        console.log('[CompulsionLogger] 📋 New entries:', final);
+        return final;
+      });
 
       // Notify parent if needed
       const entry: CompulsionEntry = {
@@ -90,14 +123,16 @@ export default function CompulsionLoggerWidget({ onLogSubmit }: CompulsionLogger
       };
       onLogSubmit?.(entry);
 
-      // Reset form
+      // Reset form ONLY after state updates complete
+      console.log('[CompulsionLogger] 🧹 Resetting form...');
       setActivity("");
       setSelectedCategory(null);
       setHours("");
       setMinutes("");
       setAnxietyLevel("5");
+      console.log('[CompulsionLogger] ✅ Submit complete!');
     } catch (error) {
-      console.error("Failed to save compulsion:", error);
+      console.error('[CompulsionLogger] ❌ Error:', error);
       alert("Failed to save entry. Please try again.");
     } finally {
       setSaving(false);
@@ -198,31 +233,23 @@ export default function CompulsionLoggerWidget({ onLogSubmit }: CompulsionLogger
         <p className="text-xs text-gray-500 text-center uppercase tracking-wide">Today's Total</p>
         <p className="text-2xl font-semibold text-center mt-1 text-gray-700">{todayTotal}m</p>
       </div>
-    </Card>
-  );
-}      {/* Recent Entries */}
+
+      {/* Recent Entries - Today only */}
       {recentEntries.length > 0 && (
         <div className="mt-4 space-y-2">
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Recent Today</p>
           {recentEntries.map((entry, idx) => (
             <div
               key={idx}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-calm"
+              className="flex items-center justify-between p-2 bg-gray-50 rounded-md border border-gray-200"
             >
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-700">{entry.activity}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 border-blue-200">
-                    {entry.category}
-                  </Badge>
-                  <span className="text-xs text-gray-400">{entry.timestamp}</span>
-                </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-gray-700 truncate">{entry.compulsion}</p>
+                <Badge variant="secondary" className="text-[10px] mt-1 bg-blue-100 text-blue-700">
+                  {entry.triggers?.[0] || 'Other'}
+                </Badge>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-600">{entry.time}</span>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-gray-400 hover:text-red-500 transition-calm">
-                  🗑️
-                </Button>
-              </div>
+              <span className="text-xs font-medium text-gray-600">{entry.timeSpent}m</span>
             </div>
           ))}
         </div>

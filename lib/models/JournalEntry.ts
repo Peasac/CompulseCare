@@ -2,10 +2,10 @@
  * JournalEntry Model - Compulsion logging
  */
 
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 
 export interface IJournalEntry extends Document {
-  _id: string;
+  _id: Types.ObjectId;
   userId: string;
   compulsion: string;
   triggers: string[];

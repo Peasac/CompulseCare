@@ -32,6 +32,9 @@ const TargetsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"daily" | "weekly">("daily");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [newTarget, setNewTarget] = useState({
     title: "",
     description: "",
@@ -135,6 +138,52 @@ const TargetsPage = () => {
     });
   };
 
+  const handleGetSuggestions = async () => {
+    setLoadingSuggestions(true);
+    try {
+      const response = await fetch("/api/targets/suggest?userId=user123", {
+        method: "POST",
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setSuggestions(data.suggestions || []);
+        setShowSuggestions(true);
+      } else {
+        throw new Error("Failed to get suggestions");
+      }
+    } catch (error) {
+      console.error("Failed to get suggestions:", error);
+      alert("Failed to generate suggestions. Please try again.");
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
+
+  const handleAddSuggestedTarget = async (suggestion: any) => {
+    try {
+      const response = await fetch("/api/targets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: "user123",
+          title: suggestion.title,
+          description: suggestion.description,
+          type: suggestion.type,
+          goal: suggestion.goal,
+          completed: false,
+        }),
+      });
+
+      if (response.ok) {
+        await fetchTargets();
+        setSuggestions((prev) => prev.filter((s) => s.title !== suggestion.title));
+      }
+    } catch (error) {
+      console.error("Failed to add target:", error);
+      alert("Failed to add target. Please try again.");
+    }
+  };
+
   const dailyTargets = targets.filter((t) => t.type === "daily");
   const weeklyTargets = targets.filter((t) => t.type === "weekly");
   
@@ -179,10 +228,73 @@ const TargetsPage = () => {
               <span className="hidden sm:inline">Add</span>
             </Button>
           </div>
+
+          {/* AI Suggestions Button */}
+          <div className="mt-3">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleGetSuggestions}
+              disabled={loadingSuggestions}
+              className="w-full gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+            >
+              {loadingSuggestions ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Analyzing patterns...
+                </>
+              ) : (
+                <>
+                  ✨ Get AI Target Suggestions
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-3xl">
+        {/* AI Suggestions Section */}
+        {showSuggestions && suggestions.length > 0 && (
+          <Card className="p-4 mb-6 bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-purple-900">🎯 AI Suggested Targets</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSuggestions(false)}
+                className="text-purple-600 hover:text-purple-700"
+              >
+                ✕
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {suggestions.map((suggestion, idx) => (
+                <div
+                  key={idx}
+                  className="p-3 bg-white rounded-lg border border-purple-200 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-gray-900">{suggestion.title}</h4>
+                      <p className="text-xs text-gray-600 mt-1">{suggestion.description}</p>
+                      <p className="text-xs text-purple-600 mt-2 italic">
+                        💡 {suggestion.reasoning}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => handleAddSuggestedTarget(suggestion)}
+                      className="shrink-0 text-xs"
+                    >
+                      Add
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
         {/* Stats Overview */}
         <div className="grid grid-cols-2 gap-4 mb-6">
           <Card className="p-4 bg-card border-border shadow-soft">

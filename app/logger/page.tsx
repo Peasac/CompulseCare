@@ -315,11 +315,11 @@ const LoggerPage = () => {
                   filteredLogs.map((log) => (
                     <TableRow key={log.id} className="hover:bg-blue-50 border-gray-200">
                       <TableCell className="font-medium text-gray-900">
-                        {log.activity || log.triggers?.join(", ") || "No description"}
+                        {log.activity || "No description"}
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200 font-medium">
-                          {log.category || log.triggers?.[0] || "Other"}
+                          {log.category || "Other"}
                         </Badge>
                       </TableCell>
                       <TableCell className="font-semibold text-gray-900">

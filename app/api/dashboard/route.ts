@@ -193,15 +193,17 @@ export async function GET(request: NextRequest) {
     let aiInsight = "Start logging to see patterns.";
     if (entries.length > 0) {
       try {
+        const avgTimeSpent = entries.length > 0 
+          ? entries.reduce((sum: number, e: any) => sum + (e.timeSpent || 0), 0) / entries.length
+          : 0;
+        
         aiInsight = await generateDashboardSnapshot({
           totalCompulsions,
           compulsionChange: -15, // TODO: Calculate from previous week
-          avgTimeSpent: entries.reduce((sum: number, e: any) => sum + (e.timeSpent || 0), 0) / entries.length,
           avgAnxiety,
           targetCompletion,
           journalEntries: entries.length,
           panicEpisodes: panicEvents.length,
-          mostCommonTrigger: "Checking", // TODO: Calculate
         });
       } catch (error) {
         console.error("[Dashboard API] AI snapshot error:", error);

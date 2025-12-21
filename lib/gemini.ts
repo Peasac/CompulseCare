@@ -1,29 +1,39 @@
 /**
  * Gemini AI Client for CompulseCare
  * Uses direct REST API calls to Google's Gemini API
+ * Optimized with retry logic, rate limiting, and caching
  */
+
+import { rateLimitedCall, withRetry } from './gemini-queue';
+import { getCached, setCache } from './gemini-cache';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 /**
- * Make a direct REST API call to Gemini
+ * Make a direct REST API call to Gemini with retry logic
  */
 async function callGemini(prompt: string): Promise<string> {
-  const response = await fetch(`${GEMINI_ENDPOINT}?key=${GEMINI_API_KEY}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-    }),
+  return withRetry(async () => {
+    const response = await fetch(`${GEMINI_ENDPOINT}?key=${GEMINI_API_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+      }),
+    });
+
+    if (response.status === 429) {
+      throw new Error(`Gemini API rate limit: 429`);
+    }
+
+    if (!response.ok) {
+      throw new Error(`Gemini API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
   });
-
-  if (!response.ok) {
-    throw new Error(`Gemini API error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 }
 
 /**
@@ -35,26 +45,19 @@ export async function getPanicSupport(context?: string): Promise<{
   message: string;
 }> {
   try {
-    const prompt = `You are a compassionate mental health support assistant for someone who just completed a breathing exercise during a panic episode.
+    // Check cache
+    const cacheKey = `panic:support:${context || 'default'}`;
+    const cached = getCached<{ message: string }>(cacheKey);
+    if (cached) return cached;
 
+    const prompt = `Compassionate support for someone after breathing exercise during panic.
 ${context ? `Context: ${context}` : ""}
 
-Generate a SHORT reassurance message following these strict rules:
-- Maximum 2 sentences
-- Calm and validating tone
-- NO advice, NO instructions, NO questions
-- NO exclamation marks
-- NO "you should" language
-- NO clinical or disorder labels
+Rules: Max 2 sentences. Calm, validating. No advice, questions, exclamations, "should" language, clinical terms.
 
-Examples of good responses:
-"You handled that moment with care. It's okay to take things slowly right now."
-"You're doing what you need to do. That took courage."
-"This feeling is temporary. You're safe in this moment."
+Provide ONLY message text.`;
 
-Provide ONLY the message text (no JSON, no formatting).`;
-
-    const text = await callGemini(prompt);
+    const text = await rateLimitedCall(() => callGemini(prompt));
     
     // Clean up any formatting
     const cleanedText = text
@@ -62,9 +65,13 @@ Provide ONLY the message text (no JSON, no formatting).`;
       .replace(/^message:\s*/i, '')
       .trim();
 
-    return {
+    const result = {
       message: cleanedText || "You handled that moment with care. It's okay to take things slowly right now.",
     };
+
+    // Cache result
+    setCache(cacheKey, result);
+    return result;
   } catch (error) {
     console.error("Gemini API error:", error);
     return {
@@ -80,29 +87,15 @@ Provide ONLY the message text (no JSON, no formatting).`;
  */
 export async function getPanicReflection(userReflection: string): Promise<string> {
   try {
-    const prompt = `You are a compassionate, reflective listener for someone who just experienced a panic episode and is processing it.
+    const prompt = `Compassionate reflective listener for panic episode processing.
 
-The user wrote:
-"${userReflection}"
+User wrote: "${userReflection}"
 
-Generate a BRIEF reflective response following these strict rules:
-- Maximum 1-2 sentences
-- Reflect back what they shared, normalize it
-- Calm, steady, quiet tone
-- NO advice, NO instructions, NO questions
-- NO exclamation marks
-- NO "you should" language
-- NO mental health labels or clinical terms
-- DO NOT validate the fear itself, normalize the response to it
+Rules: Max 1-2 sentences. Reflect and normalize. Calm tone. No advice, questions, exclamations, "should" language, clinical terms.
 
-Examples of good responses:
-"That sounds like it was a lot to carry. You're processing it now."
-"It makes sense that felt overwhelming. You're here, working through it."
-"Those moments can feel really big. You're taking time to understand it."
+Provide ONLY reflection text.`;
 
-Provide ONLY the reflection text (no JSON, no formatting).`;
-
-    const text = await callGemini(prompt);
+    const text = await rateLimitedCall(() => callGemini(prompt));
     
     // Clean up any formatting
     const cleanedText = text
@@ -137,50 +130,43 @@ export async function generateWeeklyReflection(summaryData: {
   suggestion: string;
 }> {
   try {
-    const prompt = `You are a supportive, pattern-analysis assistant providing DETAILED weekly insights for someone managing compulsions and anxiety. This is for the main summary page where detailed analysis is appropriate.
+    // Check cache first
+    const cacheKey = `summary:${JSON.stringify(summaryData)}`;
+    const cached = getCached<{ patterns: string; whatHelped: string; suggestion: string }>(cacheKey);
+    if (cached) return cached;
 
-Weekly Aggregated Stats (DO NOT recalculate or repeat these numbers):
-- Total Compulsions: ${summaryData.totalCompulsions} (${summaryData.compulsionChange > 0 ? '+' : ''}${summaryData.compulsionChange}% vs last week)
-- Avg Time Spent: ${summaryData.avgTimeSpent} minutes
-- Avg Anxiety: ${summaryData.avgAnxiety}/10
-- Target Completion: ${summaryData.targetCompletion}%
-- Journal Entries: ${summaryData.journalEntries}
-- Pause Sessions: ${summaryData.panicEpisodes}
-- Most Common Trigger: ${summaryData.mostCommonTrigger}
+    const prompt = `Weekly insights for compulsion/anxiety management. DETAILED analysis for summary page.
 
-Generate a DETAILED Weekly Reflection with EXACTLY these 3 parts:
+Stats:
+- Compulsions: ${summaryData.totalCompulsions} (${summaryData.compulsionChange > 0 ? '+' : ''}${summaryData.compulsionChange}%)
+- Avg Time: ${summaryData.avgTimeSpent}m
+- Anxiety: ${summaryData.avgAnxiety}/10
+- Targets: ${summaryData.targetCompletion}%
+- Entries: ${summaryData.journalEntries}
+- Pauses: ${summaryData.panicEpisodes}
+- Top Trigger: ${summaryData.mostCommonTrigger}
 
-1. "patterns" - Provide DETAILED explanation of WHY trends happened. Find correlations and explain the mechanism. This should be substantive (2-3 sentences). Example: "Your compulsions decreased on days when you used the pause button more frequently. The breathing exercises seem to create a buffer between the urge and the action, giving you time to make a different choice."
+Generate 3 parts:
+1. "patterns" - WHY trends happened (2-3 sentences, correlations)
+2. "whatHelped" - What worked and HOW (2-3 sentences)
+3. "suggestion" - One specific actionable suggestion (1-2 sentences)
 
-2. "whatHelped" - Provide DETAILED analysis of what strategies made a difference and explain HOW they work. This should be thorough (2-3 sentences). Example: "Your journal entries show you're recognizing triggers earlier in the process. This awareness is giving you more time to respond intentionally rather than react automatically. The more you log, the earlier you notice."
+JSON format:
+{"patterns": "...", "whatHelped": "...", "suggestion": "..."}`;
 
-3. "suggestion" - Provide ONE specific, gentle, actionable suggestion with clear reasoning. Should be concrete and grounded in patterns (1-2 sentences). Example: "Try using the pause button at the first sign of a trigger, before the compulsion feels urgent. Early intervention seems to work best for your patterns."
-
-CRITICAL RULES:
-- THIS IS DETAILED ANALYSIS (not a glanceable hint)
-- Explain WHY and HOW, with depth
-- Find correlations between different data points
-- Be specific to this person's data
-- Use calm, supportive, non-clinical language
-- NO generic encouragement
-- NO medical advice or crisis language
-- Grounded in available data only
-
-Format as JSON:
-{
-  "patterns": "...",
-  "whatHelped": "...",
-  "suggestion": "..."
-}`;
-
-    const text = await callGemini(prompt);
+    const text = await rateLimitedCall(() => callGemini(prompt));
 
     // Try to parse JSON response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
-      if (parsed.patterns && parsed.whatHelped && parsed.suggestion) {
-        return parsed;
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (parsed.patterns && parsed.whatHelped && parsed.suggestion) {
+          setCache(cacheKey, parsed);
+          return parsed;
+        }
+      } catch (e) {
+        console.warn("Failed to parse Gemini JSON response:", e);
       }
     }
 
@@ -197,25 +183,28 @@ Format as JSON:
       ? `Try using the pause button at the first sign of a trigger, before the compulsion feels urgent. Early intervention seems to work best for your patterns based on this week's data.`
       : `Focus on using the pause button for just one specific trigger this week. Mastering one pattern is more effective than trying to change everything at once.`;
 
-    return {
+    const result = {
       patterns: patternsText,
       whatHelped: whatHelpedText,
       suggestion: suggestionText,
     };
+
+    setCache(cacheKey, result);
+    return result;
   } catch (error) {
     console.error("Gemini API error:", error);
     return {
       patterns: "Your compulsions decreased on days when you used the pause button more frequently. The breathing exercises seem to create a buffer between the urge and the action, giving you time to make a different choice.",
       whatHelped: "Your journal entries show you're recognizing triggers earlier in the process. This awareness is giving you more time to respond intentionally rather than react automatically.",
-      suggestion: "Try using the pause button at the first sign of a trigger, before the compulsion feels urgent. Early intervention seems to work best for your patterns.",
+      suggestion: "Try using the pause button at the first sign of a trigger, before the compulsion feels urgent.",
     };
   }
 }
 
 /**
- * Generate dashboard AI snapshot - ONE short, tentative hint (glanceable)
+ * Generate dashboard snapshot - a single quick observation
  * @param summaryData - User's weekly stats
- * @returns Single tentative sentence (max 15 words)
+ * @returns One-sentence glanceable insight (max 15 words)
  */
 export async function generateDashboardSnapshot(summaryData: {
   totalCompulsions: number;
@@ -226,45 +215,39 @@ export async function generateDashboardSnapshot(summaryData: {
   avgAnxiety: number;
 }): Promise<string> {
   try {
-    const prompt = `Generate ONE very short, tentative observation (max 15 words) based on this week's data. This is a GLANCEABLE HINT only, not detailed analysis.
+    // Check cache
+    const cacheKey = `dashboard:${JSON.stringify(summaryData)}`;
+    const cached = getCached<string>(cacheKey);
+    if (cached) return cached;
 
-Weekly Stats:
-- Compulsions: ${summaryData.totalCompulsions} (${summaryData.compulsionChange > 0 ? '+' : ''}${summaryData.compulsionChange}% vs last week)
-- Pause Sessions: ${summaryData.panicEpisodes}
-- Journal Entries: ${summaryData.journalEntries}
-- Target Completion: ${summaryData.targetCompletion}%
-- Avg Anxiety: ${summaryData.avgAnxiety}/10
+    const prompt = `One short observation (max 15 words) from week's data. Glanceable hint only.
 
-CRITICAL RULES:
-- EXACTLY one sentence
-- Maximum 15 words
-- Tentative tone (use "seems", "might", "appears")
-- Glanceable hint, not explanation
-- NO advice, NO lists, NO explanations
-- Just note ONE correlation or trend
+Stats:
+- Compulsions: ${summaryData.totalCompulsions} (${summaryData.compulsionChange > 0 ? '+' : ''}${summaryData.compulsionChange}%)
+- Pauses: ${summaryData.panicEpisodes}
+- Entries: ${summaryData.journalEntries}
+- Targets: ${summaryData.targetCompletion}%
+- Anxiety: ${summaryData.avgAnxiety}/10
 
-Good examples:
-"Fewer compulsions on days with more pauses."
-"Anxiety seems lower when you journal regularly."
-"Compulsions dropped as pause sessions increased."
+Rules: 1 sentence, max 15 words, tentative tone ("seems", "might", "appears"), one correlation only.
 
-Bad examples (too detailed):
-"Your compulsions dropped because you used pauses — keep it up."
-"Multiple patterns show improvement in several areas."
+Provide ONLY sentence.`;
 
-Provide ONLY the short sentence (no quotes, no formatting).`;
-
-    const text = await callGemini(prompt);
+    const text = await rateLimitedCall(() => callGemini(prompt));
     
-    const cleaned = text.trim().replace(/^["']|["']$/g, '');
+    // Clean and truncate to 15 words max
+    const cleaned = text
+      .replace(/["\{\}]/g, '')
+      .replace(/^(snapshot|observation):\s*/i, '')
+      .trim();
     
-    // Enforce max 15 words
     const words = cleaned.split(/\s+/);
-    if (words.length > 15) {
-      return words.slice(0, 15).join(' ') + '.';
-    }
+    const result = words.length > 15 
+      ? words.slice(0, 15).join(' ') + '.'
+      : cleaned || "Fewer compulsions on days with more pauses.";
     
-    return cleaned || "Fewer compulsions on days with more pauses.";
+    setCache(cacheKey, result);
+    return result;
   } catch (error) {
     console.error("Gemini API error:", error);
     return "Fewer compulsions on days with more pauses.";
@@ -303,7 +286,7 @@ Be specific to the data, warm, and hopeful. Format as a JSON array of strings.
 Example format:
 ["insight 1", "insight 2", "insight 3"]`;
 
-    const text = await callGemini(prompt);
+    const text = await rateLimitedCall(() => callGemini(prompt));
 
     // Try to parse JSON array
     const jsonMatch = text.match(/\[[\s\S]*\]/);
