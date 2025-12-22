@@ -95,25 +95,41 @@ const TargetsPage = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const headers: HeadersInit = {};
+      const headers: HeadersInit = { "Content-Type": "application/json" };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
       
       // Get AI suggestions
-      const response = await fetch(`/api/targets/suggest?userId=${user.id}&type=${type}`, {
+      const suggestResponse = await fetch(`/api/targets/suggest?userId=${user.id}&type=${type}`, {
         method: "POST",
         headers,
       });
       
-      if (!response.ok) return;
+      if (!suggestResponse.ok) return;
       
-      const data = await response.json();
+      const data = await suggestResponse.json();
       const suggestions = (data.suggestions || []).slice(0, count);
 
-      // Auto-add suggestions with pinned=true
+      // Auto-add suggestions with pinned=true (all auto-generated targets are pinned)
       for (const suggestion of suggestions) {
-        await handleAddSuggestedTarget(suggestion, true); // true = silent mode, auto-pins
+        const response = await fetch("/api/targets", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            userId: user.id,
+            title: suggestion.title,
+            description: suggestion.description,
+            type: suggestion.type,
+            goal: suggestion.goal,
+            completed: false,
+            pinned: true, // Auto-generated = always pinned
+          }),
+        });
+        
+        if (!response.ok) {
+          console.error("Failed to create auto-generated target");
+        }
       }
 
       // Refresh targets list
