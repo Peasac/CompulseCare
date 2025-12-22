@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
+    const targetType = searchParams.get("type"); // 'daily' or 'weekly'
 
     if (!userId) {
       return NextResponse.json(
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check cache first (6 hour cache for suggestions)
-    const cacheKey = `targets:suggest:${userId}`;
+    const cacheKey = `targets:suggest:${userId}:${targetType || 'all'}`;
     const cached = getCached<any>(cacheKey);
     if (cached) {
       console.log('[Suggest Targets] Returning cached suggestions');
@@ -302,10 +303,24 @@ export async function POST(request: NextRequest) {
       (s) => !existingTitles.some((existing) => existing.includes(s.title.toLowerCase().substring(0, 20)))
     );
 
-    // Ensure we always return at least 3 suggestions (use all suggestions if filtering left us with less)
-    const finalSuggestions = uniqueSuggestions.length >= 3 
-      ? uniqueSuggestions.slice(0, 3)
-      : suggestions.slice(0, 3); // Use unfiltered if we don't have enough unique ones
+    // Filter by type if specified
+    let filteredSuggestions = uniqueSuggestions;
+    if (targetType === 'daily' || targetType === 'weekly') {
+      filteredSuggestions = uniqueSuggestions.filter(s => s.type === targetType);
+      
+      // If not enough suggestions of the requested type, add from unfiltered
+      if (filteredSuggestions.length < 3) {
+        const additionalSuggestions = suggestions
+          .filter(s => s.type === targetType && !filteredSuggestions.includes(s))
+          .slice(0, 3 - filteredSuggestions.length);
+        filteredSuggestions = [...filteredSuggestions, ...additionalSuggestions];
+      }
+    }
+
+    // Ensure we always return at least 3 suggestions
+    const finalSuggestions = filteredSuggestions.length >= 3 
+      ? filteredSuggestions.slice(0, 3)
+      : suggestions.filter(s => !targetType || s.type === targetType).slice(0, 3);
 
     // Return top 3 suggestions
     const result = {

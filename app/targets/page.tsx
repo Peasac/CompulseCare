@@ -19,6 +19,7 @@ interface Target {
   goal: number;
   current: number;
   completed: boolean;
+  pinned?: boolean;
   deadline?: string;
 }
 
@@ -81,6 +82,7 @@ const TargetsPage = () => {
           goal: t.goal || 1,
           current: t.completed ? (t.goal || 1) : 0,
           completed: t.completed,
+          pinned: t.pinned || false,
           deadline: t.type === "daily" ? "Today, 11:59 PM" : "Sunday, 11:59 PM",
         }));
         setTargets(transformedTargets);
@@ -169,6 +171,42 @@ const TargetsPage = () => {
     }
   };
 
+  const handlePinTarget = async (targetId: string, pinned: boolean) => {
+    if (!user) return;
+
+    // Optimistically update UI
+    const target = targets.find(t => t.id === targetId);
+    setTargets((prev) =>
+      prev.map((t) => (t.id === targetId ? { ...t, pinned } : t))
+    );
+
+    try {
+      const token = localStorage.getItem("token");
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/targets/pin/${targetId}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({ pinned }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to pin target");
+      }
+    } catch (error: any) {
+      console.error("Failed to pin target:", error);
+      // Revert on error
+      setTargets((prev) =>
+        prev.map((t) => (t.id === targetId ? { ...t, pinned: !pinned } : t))
+      );
+      alert(error.message || "Failed to update pin status. Please try again.");
+    }
+  };
+
   const handleAddTarget = () => {
     if (!newTarget.title.trim()) return;
 
@@ -194,7 +232,7 @@ const TargetsPage = () => {
     });
   };
 
-  const handleGetSuggestions = async () => {
+  const handleGetSuggestions = async (type?: 'daily' | 'weekly') => {
     if (!user) return;
     
     setLoadingSuggestions(true);
@@ -205,7 +243,8 @@ const TargetsPage = () => {
         headers["Authorization"] = `Bearer ${token}`;
       }
       
-      const response = await fetch(`/api/targets/suggest?userId=${user.id}`, {
+      const typeParam = type ? `&type=${type}` : '';
+      const response = await fetch(`/api/targets/suggest?userId=${user.id}${typeParam}`, {
         method: "POST",
         headers,
       });
@@ -301,28 +340,6 @@ const TargetsPage = () => {
               <span className="hidden sm:inline">Add</span>
             </Button>
           </div>
-
-          {/* AI Suggestions Button */}
-          <div className="mt-3">
-            <Button
-              variant="default"
-              size="sm"
-              onClick={handleGetSuggestions}
-              disabled={loadingSuggestions}
-              className="w-full gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-            >
-              {loadingSuggestions ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Analyzing patterns...
-                </>
-              ) : (
-                <>
-                  ✨ Get AI Target Suggestions
-                </>
-              )}
-            </Button>
-          </div>
         </div>
       </header>
 
@@ -379,6 +396,14 @@ const TargetsPage = () => {
               {completedDaily}/{dailyTargets.length}
             </p>
             <p className="text-xs text-muted-foreground">completed today</p>
+            {dailyTargets.length > 0 && (
+              <div className="mt-2 bg-muted h-1.5 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary transition-all duration-300"
+                  style={{ width: `${(completedDaily / dailyTargets.length) * 100}%` }}
+                />
+              </div>
+            )}
           </Card>
 
           <Card className="p-4 bg-card border-border shadow-soft">
@@ -390,8 +415,47 @@ const TargetsPage = () => {
               {completedWeekly}/{weeklyTargets.length}
             </p>
             <p className="text-xs text-muted-foreground">completed this week</p>
+            {weeklyTargets.length > 0 && (
+              <div className="mt-2 bg-muted h-1.5 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-success transition-all duration-300"
+                  style={{ width: `${(completedWeekly / weeklyTargets.length) * 100}%` }}
+                />
+              </div>
+            )}
           </Card>
         </div>
+
+        {/* Motivational Progress Card */}
+        {(dailyTargets.length > 0 || weeklyTargets.length > 0) && (
+          <Card className="p-5 mb-6 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+            <div className="flex items-start gap-3">
+              <div className="text-2xl">
+                {completedDaily + completedWeekly === dailyTargets.length + weeklyTargets.length 
+                  ? "🎉" 
+                  : completedDaily + completedWeekly > 0 
+                    ? "💪" 
+                    : "🎯"}
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-green-900 mb-1">
+                  {completedDaily + completedWeekly === dailyTargets.length + weeklyTargets.length
+                    ? "Amazing work! All targets completed!"
+                    : completedDaily + completedWeekly > 0
+                      ? "Great progress! Keep going!"
+                      : "Ready to start? Pick a target to begin!"}
+                </h3>
+                <p className="text-xs text-green-700">
+                  {completedDaily + completedWeekly === dailyTargets.length + weeklyTargets.length
+                    ? "You've completed all your targets. Consider setting new ones to maintain momentum."
+                    : completedDaily + completedWeekly > 0
+                      ? `You've completed ${completedDaily + completedWeekly} out of ${dailyTargets.length + weeklyTargets.length} targets. Every step forward counts!`
+                      : "Start with one small target. Progress happens one step at a time."}
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
 
         {/* Tabs for Daily/Weekly */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "daily" | "weekly")}>
@@ -402,6 +466,26 @@ const TargetsPage = () => {
 
           {/* Daily Targets */}
           <TabsContent value="daily" className="space-y-4">
+            {/* AI Suggestions Button for Daily */}
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => handleGetSuggestions('daily')}
+              disabled={loadingSuggestions}
+              className="w-full gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 mb-4"
+            >
+              {loadingSuggestions ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Analyzing patterns...
+                </>
+              ) : (
+                <>
+                  ✨ Get Daily AI Suggestions
+                </>
+              )}
+            </Button>
+            
             {dailyTargets.length === 0 ? (
               <Card className="p-8 text-center bg-card border-border">
                 <p className="text-muted-foreground">No daily targets set yet.</p>
@@ -422,6 +506,7 @@ const TargetsPage = () => {
                   target={target}
                   onComplete={handleCompleteTarget}
                   onDelete={handleDeleteTarget}
+                  onPin={handlePinTarget}
                 />
               ))
             )}
@@ -429,6 +514,26 @@ const TargetsPage = () => {
 
           {/* Weekly Targets */}
           <TabsContent value="weekly" className="space-y-4">
+            {/* AI Suggestions Button for Weekly */}
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => handleGetSuggestions('weekly')}
+              disabled={loadingSuggestions}
+              className="w-full gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 mb-4"
+            >
+              {loadingSuggestions ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Analyzing patterns...
+                </>
+              ) : (
+                <>
+                  ✨ Get Weekly AI Suggestions
+                </>
+              )}
+            </Button>
+            
             {weeklyTargets.length === 0 ? (
               <Card className="p-8 text-center bg-card border-border">
                 <p className="text-muted-foreground">No weekly targets set yet.</p>
@@ -449,6 +554,7 @@ const TargetsPage = () => {
                   target={target}
                   onComplete={handleCompleteTarget}
                   onDelete={handleDeleteTarget}
+                  onPin={handlePinTarget}
                 />
               ))
             )}

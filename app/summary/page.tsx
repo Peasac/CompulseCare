@@ -49,10 +49,13 @@ const WeeklySummaryPage = () => {
   const [summaryData, setSummaryData] = useState<WeeklySummaryData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [documentAnalysis, setDocumentAnalysis] = useState<string | null>(null);
+  const [loadingDocAnalysis, setLoadingDocAnalysis] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchWeeklySummary();
+      fetchDocumentAnalysis();
     }
   }, [user, token]);
 
@@ -83,6 +86,33 @@ const WeeklySummaryPage = () => {
       setError("Unable to load weekly summary. Please try again.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchDocumentAnalysis = async () => {
+    if (!user) return;
+    
+    setLoadingDocAnalysis(true);
+    
+    try {
+      const headers: HeadersInit = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`/api/documents/analyze?userId=${user.id}`, {
+        headers,
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setDocumentAnalysis(data.analysis);
+      }
+    } catch (err) {
+      console.error("Document analysis error:", err);
+      setDocumentAnalysis("Unable to analyze documents at this time.");
+    } finally {
+      setLoadingDocAnalysis(false);
     }
   };
 
@@ -249,6 +279,44 @@ const WeeklySummaryPage = () => {
 
         {/* Document Upload Section */}
         <DocumentUploadCard userId={user.id} />
+
+        {/* Document Analysis Section */}
+        {documentAnalysis && (
+          <Card className="p-6 shadow-soft bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white">
+                📄
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-indigo-900 mb-1">
+                  Document Insights
+                </h3>
+                <p className="text-xs text-indigo-600 mb-3">
+                  AI analysis of your uploaded documents
+                </p>
+                {loadingDocAnalysis ? (
+                  <div className="flex items-center gap-2 text-sm text-indigo-600">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Analyzing documents...
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    {documentAnalysis}
+                  </p>
+                )}
+              </div>
+            </div>
+            <Button
+              onClick={fetchDocumentAnalysis}
+              variant="outline"
+              size="sm"
+              disabled={loadingDocAnalysis}
+              className="mt-3 border-indigo-300 text-indigo-700 hover:bg-indigo-100"
+            >
+              🔄 Refresh Analysis
+            </Button>
+          </Card>
+        )}
 
         {/* 2. DATA & TRENDS SECTION - SUPPORTING EVIDENCE */}
         <div>

@@ -34,8 +34,10 @@ export default function WeeklyTargetsWidget() {
         const response = await fetch(`/api/targets?userId=${user.id}`, { headers });
         if (response.ok) {
           const data = await response.json();
-          // Only show weekly targets
-          const weeklyTargets = (data.targets || []).filter((t: WeeklyTarget) => t.type === "weekly");
+          // Only show pinned weekly targets
+          const weeklyTargets = (data.targets || [])
+            .filter((t: WeeklyTarget) => t.type === "weekly" && (t as any).pinned)
+            .slice(0, 2);
           setTargets(weeklyTargets);
         }
       } catch (error) {
@@ -106,7 +108,7 @@ export default function WeeklyTargetsWidget() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Calendar className="w-5 h-5 text-purple-600" />
-          <h3 className="font-medium text-base text-foreground">Weekly Targets</h3>
+          <h3 className="font-medium text-base text-foreground">Weekly Targets (Pinned)</h3>
         </div>
       </div>
 

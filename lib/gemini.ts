@@ -478,3 +478,57 @@ Provide ONLY the summary.`;
     return "Document text extracted and stored for reference.";
   }
 }
+
+/**
+ * Analyze uploaded documents and extract OCD-related insights
+ */
+export async function analyzeDocuments(documents: Array<{ ocrText: string; fileName: string }>): Promise<string> {
+  try {
+    if (documents.length === 0) {
+      return "No documents uploaded yet. Upload therapy notes, assessments, or related documents to get AI insights.";
+    }
+
+    // Check cache
+    const docHash = documents.map(d => d.fileName).join(',');
+    const cacheKey = `documents:analysis:${docHash}`;
+    const cached = getCached<string>(cacheKey);
+    if (cached) return cached;
+
+    // Combine document texts (limit to prevent token overflow)
+    const combinedText = documents
+      .map(d => `Document: ${d.fileName}\n${d.ocrText.substring(0, 1500)}`)
+      .join('\n\n---\n\n')
+      .substring(0, 8000);
+
+    const prompt = `Analyze these uploaded documents for OCD-related patterns and information. Extract key insights.
+
+${combinedText}
+
+Provide a brief analysis (4-5 sentences) covering:
+1. Main OCD themes or symptoms mentioned
+2. Therapy approaches or treatments referenced
+3. Progress indicators or assessment results
+4. Relevant patterns or triggers identified
+
+Rules:
+- Be factual and neutral
+- Focus only on what's in the documents
+- No diagnosis or medical advice
+- Highlight actionable insights
+- Use supportive, non-clinical language
+
+Provide ONLY the analysis.`;
+
+    const text = await rateLimitedCall(() => callGemini(prompt));
+    const cleaned = text.trim();
+    
+    // Cache for 24 hours
+    setCache(cacheKey, cleaned);
+    return cleaned;
+
+  } catch (error) {
+    console.error("Document analysis error:", error);
+    return "Your documents have been uploaded and stored securely. Try generating insights again later.";
+  }
+}
+

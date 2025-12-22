@@ -55,7 +55,7 @@ const JournalCard = ({ entry, compact = false }: JournalCardProps) => {
       </div>
 
       {/* Trigger pills */}
-      {triggers.length > 0 && (
+      {triggers && triggers.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-3">
           {triggers.map((trigger, index) => (
             <Badge

@@ -14,6 +14,7 @@ export interface ITarget extends Document {
   goal: number; // target count or duration
   completed: boolean;
   completedAt?: Date;
+  pinned: boolean; // whether target is pinned to dashboard
   createdAt: Date;
   updatedAt: Date;
 }
@@ -57,6 +58,10 @@ const TargetSchema = new Schema<ITarget>(
     },
     completedAt: {
       type: Date,
+    },
+    pinned: {
+      type: Boolean,
+      default: false,
     },
   },
   {

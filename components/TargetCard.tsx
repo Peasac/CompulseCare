@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Circle, Calendar, Trash2 } from "lucide-react";
+import { CheckCircle2, Circle, Calendar, Trash2, Pin } from "lucide-react";
 
 interface Target {
   id: string;
@@ -15,6 +15,7 @@ interface Target {
   goal: number;
   current: number;
   completed: boolean;
+  pinned?: boolean;
   deadline?: string;
 }
 
@@ -22,6 +23,7 @@ interface TargetCardProps {
   target: Target;
   onComplete?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onPin?: (id: string, pinned: boolean) => void;
   compact?: boolean;
 }
 
@@ -29,8 +31,8 @@ interface TargetCardProps {
  * TargetCard - Display and track daily/weekly targets
  * Shows progress, completion status, and allows marking complete
  */
-const TargetCard = ({ target, onComplete, onDelete, compact = false }: TargetCardProps) => {
-  const { id, title, description, type, progress, goal, current, completed, deadline } = target;
+const TargetCard = ({ target, onComplete, onDelete, onPin, compact = false }: TargetCardProps) => {
+  const { id, title, description, type, progress, goal, current, completed, pinned, deadline } = target;
 
   const handleComplete = () => {
     if (onComplete && !completed) {
@@ -41,6 +43,12 @@ const TargetCard = ({ target, onComplete, onDelete, compact = false }: TargetCar
   const handleDelete = () => {
     if (onDelete && confirm(`Delete "${title}"?`)) {
       onDelete(id);
+    }
+  };
+
+  const handlePin = () => {
+    if (onPin) {
+      onPin(id, !pinned);
     }
   };
 
@@ -89,6 +97,18 @@ const TargetCard = ({ target, onComplete, onDelete, compact = false }: TargetCar
               aria-label="Mark as complete"
             >
               <Circle className="w-6 h-6 text-gray-400" />
+            </Button>
+          )}
+          {onPin && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePin}
+              className={`flex-shrink-0 ${pinned ? 'bg-blue-100 hover:bg-blue-200' : 'hover:bg-gray-100'}`}
+              aria-label={pinned ? "Unpin from dashboard" : "Pin to dashboard"}
+              title={pinned ? "Unpin from dashboard" : "Pin to dashboard"}
+            >
+              <Pin className={`w-4 h-4 ${pinned ? 'text-blue-600 fill-blue-600' : 'text-gray-400'}`} />
             </Button>
           )}
           {onDelete && (
