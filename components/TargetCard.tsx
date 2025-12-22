@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Circle, Calendar } from "lucide-react";
+import { CheckCircle2, Circle, Calendar, Trash2 } from "lucide-react";
 
 interface Target {
   id: string;
@@ -21,6 +21,7 @@ interface Target {
 interface TargetCardProps {
   target: Target;
   onComplete?: (id: string) => void;
+  onDelete?: (id: string) => void;
   compact?: boolean;
 }
 
@@ -28,12 +29,18 @@ interface TargetCardProps {
  * TargetCard - Display and track daily/weekly targets
  * Shows progress, completion status, and allows marking complete
  */
-const TargetCard = ({ target, onComplete, compact = false }: TargetCardProps) => {
+const TargetCard = ({ target, onComplete, onDelete, compact = false }: TargetCardProps) => {
   const { id, title, description, type, progress, goal, current, completed, deadline } = target;
 
   const handleComplete = () => {
     if (onComplete && !completed) {
       onComplete(id);
+    }
+  };
+
+  const handleDelete = () => {
+    if (onDelete && confirm(`Delete "${title}"?`)) {
+      onDelete(id);
     }
   };
 
@@ -70,19 +77,32 @@ const TargetCard = ({ target, onComplete, compact = false }: TargetCardProps) =>
           )}
         </div>
         
-        {completed ? (
-          <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
-        ) : (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleComplete}
-            className="flex-shrink-0 hover:bg-green-100"
-            aria-label="Mark as complete"
-          >
-            <Circle className="w-6 h-6 text-gray-400" />
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {completed ? (
+            <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleComplete}
+              className="flex-shrink-0 hover:bg-green-100"
+              aria-label="Mark as complete"
+            >
+              <Circle className="w-6 h-6 text-gray-400" />
+            </Button>
+          )}
+          {onDelete && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleDelete}
+              className="flex-shrink-0 hover:bg-red-100"
+              aria-label="Delete target"
+            >
+              <Trash2 className="w-4 h-4 text-red-500" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Progress Bar */}

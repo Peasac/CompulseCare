@@ -9,6 +9,9 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CompulsionLoggerWidget from "@/components/CompulsionLoggerWidget";
 import DailyTargetsWidget from "@/components/DailyTargetsWidget";
+import WeeklyTargetsWidget from "@/components/WeeklyTargetsWidget";
+import CheckInModal from "@/components/CheckInModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 /**
  * DashboardPage - Main landing page with centered Pause & Breathe button
@@ -52,16 +55,33 @@ interface DashboardData {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [userName] = useState("Ayaan"); // TODO: Get from auth context
+  const { user, token, isLoading } = useAuth();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Redirect to login if not authenticated
   useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, isLoading, router]);
+
+  useEffect(() => {
+    if (!user) return;
+    
     async function fetchDashboard() {
       try {
         setLoading(true);
-        const response = await fetch("/api/dashboard?userId=user123");
+        const headers: HeadersInit = {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+        
+        const response = await fetch(`/api/dashboard?userId=${user.id}`, {
+          headers,
+        });
+        
         if (!response.ok) {
           throw new Error("Failed to fetch dashboard data");
         }
@@ -76,24 +96,43 @@ export default function DashboardPage() {
     }
 
     fetchDashboard();
-  }, []);
+  }, [user, token]);
 
   const handlePauseClick = () => {
     router.push("/panic");
   };
 
+  if (isLoading || !user) {
+    return (
+      <div className="min-h-screen bg-[#F5F6FA] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     
     <div className="min-h-screen bg-[#F5F6FA] flex flex-col">
       {/* Header */}
-      <Header userName={userName} showExport={true} />
+      <Header userName={user.name || undefined} showExport={true} userId={user.id} />
 
       {/* Main Content - 3 Column Layout with Large Center Button */}
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          {/* Left Column - Compulsion Logger */}
-          <div className="lg:col-span-1">
+          {/* Left Column - Compulsion Logger + Check-In */}
+          <div className="lg:col-span-1 space-y-4">
             <CompulsionLoggerWidget />
+            <CheckInModal userId={user.id} />
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => router.push("/checkin")}
+            >
+              View Check-In History
+            </Button>
           </div>
 
           {/* Center Column - Panic Button */}
@@ -125,8 +164,9 @@ export default function DashboardPage() {
           </div>
 
           {/* Right Column - Daily Targets */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-4">
             <DailyTargetsWidget />
+            <WeeklyTargetsWidget />
           </div>
         </div>
 

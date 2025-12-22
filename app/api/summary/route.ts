@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateWeeklyReflection } from "@/lib/gemini";
+import { generateWeeklyReflection, explainBehavioralInsight } from "@/lib/gemini";
+import { analyzeBehavioralPatterns, getTopInsights } from "@/lib/behavioral-insights";
+import { getCached, setCache } from "@/lib/gemini-cache";
 import connectDB from "@/lib/mongodb";
 import JournalEntry from "@/lib/models/JournalEntry";
 import Mood from "@/lib/models/Mood";
@@ -8,16 +10,14 @@ import PanicEvent from "@/lib/models/PanicEvent";
 
 /**
  * GET /api/summary?userId=X
- * Weekly summary with Gemini-generated reflection and analytics
+ * Weekly summary with behavioral insights and AI-generated reflection
  * 
- * Returns:
- * - textSummary: What improved (from LLM reflection)
- * - aggregated metrics (compulsions, time, mood)
- * - chart data for visualizations
- * - insights: [patterns noticed, suggestion for next week] (from LLM)
- * 
- * LLM generates reflection once per week using pre-aggregated stats only
- * Caches AI responses in-memory to prevent repeated generation
+ * Process:
+ * 1. Fetch historical data (7+ days)
+ * 2. Run behavioral pattern detection (deterministic)
+ * 3. Transform top insights to human-readable text (LLM)
+ * 4. Generate weekly reflection (LLM with structured data)
+ * 5. Cache results to prevent regeneration
  */
 
 interface WeeklySummaryResponse {
@@ -191,7 +191,44 @@ Keep tone positive, validating, and hopeful. Focus on patterns and small wins.`;
         ? entries.reduce((sum: number, e: any) => sum + (e.anxietyLevel || 0), 0) / entries.length
         : 0;
 
-    // Generate weekly reflection using Gemini (uses pre-aggregated stats only)
+    // Run behavioral pattern analysis (deterministic, no LLM)
+    let behavioralInsights: string[] = [];
+    let textSummary = "Keep tracking to see meaningful patterns.";
+    
+    if (entries.length >= 10) { // Need sufficient data for pattern detection
+      try {
+        // Check cache
+        const behavioralCacheKey = `summary:behavioral:${userId}:${entries.length}`;
+        let cachedBehavioralText = getCached<string[]>(behavioralCacheKey);
+        
+        if (!cachedBehavioralText) {
+          // Run behavioral analysis
+          const behavioralAnalysis = await analyzeBehavioralPatterns({
+            journalEntries: entries,
+            panicEvents: panicEvents,
+            targets: targets,
+          });
+
+          // Get top 3 insights
+          const topInsights = getTopInsights(behavioralAnalysis, 3);
+
+          // Transform each insight to human-readable text using LLM
+          const insightPromises = topInsights.map(insight => 
+            explainBehavioralInsight(insight)
+          );
+          behavioralInsights = await Promise.all(insightPromises);
+
+          // Cache behavioral insights
+          setCache(behavioralCacheKey, behavioralInsights);
+        } else {
+          behavioralInsights = cachedBehavioralText;
+        }
+      } catch (error) {
+        console.error("[Summary API] Behavioral analysis error:", error);
+      }
+    }
+
+    // Generate weekly reflection using traditional LLM approach (uses pre-aggregated stats)
     const reflection = await generateWeeklyReflection({
       totalCompulsions,
       compulsionChange: -15, // TODO: Calculate from previous week
@@ -203,15 +240,24 @@ Keep tone positive, validating, and hopeful. Focus on patterns and small wins.`;
       mostCommonTrigger,
     });
 
+    textSummary = reflection.whatHelped;
+
+    // Combine behavioral insights with traditional reflection
+    const allInsights = [
+      ...behavioralInsights, // Deterministic pattern detection
+      reflection.patterns, // Traditional LLM reflection
+      reflection.suggestion, // Traditional LLM suggestion
+    ].filter(Boolean);
+
     const response: WeeklySummaryResponse = {
-      textSummary: reflection.whatHelped,
+      textSummary,
       totalCompulsions,
       avgTimeSpent,
       mostCommonTrigger,
       compulsionChange: -15, // TODO: Calculate from previous week
       moodAverage: Math.round(avgMood * 10) / 10,
       chartData,
-      insights: [reflection.patterns, reflection.suggestion],
+      insights: allInsights.slice(0, 5), // Show top 5 insights
     };
 
     // Cache the response

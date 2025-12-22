@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import Navigation from "@/components/Navigation";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface MoodEntry {
   id: string;
@@ -36,6 +37,7 @@ const MOOD_OPTIONS = [
  */
 const MoodTrackerPage = () => {
   const router = useRouter();
+  const { user, isLoading } = useAuth();
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [intensity, setIntensity] = useState([5]);
   const [note, setNote] = useState("");
@@ -44,14 +46,30 @@ const MoodTrackerPage = () => {
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
   useEffect(() => {
-    fetchMoodHistory();
-  }, []);
+    if (!isLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, isLoading, router]);
+
+  useEffect(() => {
+    if (user) {
+      fetchMoodHistory();
+    }
+  }, [user]);
 
   const fetchMoodHistory = async () => {
+    if (!user) return;
+    
     setIsLoadingHistory(true);
     
     try {
-      const response = await fetch("/api/mood?userId=user123&limit=10");
+      const token = localStorage.getItem("token");
+      const headers: HeadersInit = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`/api/mood?userId=${user.id}&limit=10`, { headers });
       if (response.ok) {
         const data = await response.json();
         setMoodHistory(data.entries || []);
@@ -72,14 +90,25 @@ const MoodTrackerPage = () => {
       return;
     }
 
+    if (!user) {
+      alert("Please log in to save moods");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      const token = localStorage.getItem("token");
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      
       const response = await fetch("/api/mood", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
-          userId: "user123", // TODO: Get from auth context
+          userId: user.id,
           emoji: selectedMood,
           intensity: intensity[0],
           note: note.trim() || undefined,

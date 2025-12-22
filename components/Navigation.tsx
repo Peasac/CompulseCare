@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, AlertCircle, BookText, Target, TrendingUp, Smile } from "lucide-react";
+import { Home, AlertCircle, BookText, Target, TrendingUp, Smile, ClipboardList } from "lucide-react";
 
 /**
  * Navigation - Mobile-friendly bottom navigation
@@ -13,6 +13,7 @@ const Navigation = () => {
   
   const navItems = [
     { href: "/", icon: Home, label: "Dashboard" },
+    { href: "/checkin", icon: ClipboardList, label: "Check-Ins" },
     { href: "/panic", icon: AlertCircle, label: "Panic" },
     { href: "/journal", icon: BookText, label: "Journal" },
     { href: "/targets", icon: Target, label: "Targets" },

@@ -62,17 +62,42 @@ export async function POST(request: NextRequest) {
     const existingTargets = await Target.find({ userId } as any).lean();
 
     if (entries.length === 0) {
+      // Return starter suggestions for new users
+      const starterSuggestions = [
+        {
+          title: "Track 3 compulsions today",
+          description: "Log at least 3 compulsions to start identifying patterns",
+          type: "daily" as const,
+          targetType: "mindfulness" as const,
+          goal: 3,
+          reasoning: "Building awareness is the first step to managing OCD",
+        },
+        {
+          title: "Practice breathing exercise",
+          description: "Use the 4-7-8 breathing technique when you feel an urge",
+          type: "daily" as const,
+          targetType: "mindfulness" as const,
+          goal: 2,
+          reasoning: "Breathing helps create space between urge and action",
+        },
+        {
+          title: "Weekly journaling goal",
+          description: "Log at least 10 compulsions this week to understand your patterns",
+          type: "weekly" as const,
+          targetType: "mindfulness" as const,
+          goal: 10,
+          reasoning: "Consistent tracking over a week reveals important patterns",
+        },
+      ];
+      
       return NextResponse.json({
-        suggestions: [
-          {
-            title: "Start tracking compulsions",
-            description: "Log at least 3 compulsions today to identify patterns",
-            type: "daily",
-            targetType: "mindfulness",
-            goal: 3,
-            reasoning: "Building awareness is the first step",
-          },
-        ],
+        suggestions: starterSuggestions,
+        stats: {
+          mostCommonTrigger: null,
+          mostCommonCompulsion: null,
+          avgCompulsionsPerDay: 0,
+          avgTimePerDay: 0,
+        },
       });
     }
 
@@ -167,8 +192,124 @@ export async function POST(request: NextRequest) {
         reasoning: "Immediate logging builds awareness and breaks automatic patterns",
       });
     }
-const result = {
-      suggestions: uniqueSuggestions.slice(0, 3),
+
+    // Suggestion 6: Weekly reduction goal
+    if (entries.length >= 5) {
+      const weeklyTotal = entries.length;
+      const weeklyGoal = Math.max(3, Math.floor(weeklyTotal * 0.7)); // 30% reduction
+      
+      suggestions.push({
+        title: "Reduce weekly compulsion count",
+        description: `Aim for ${weeklyGoal} compulsions or fewer this week`,
+        type: "weekly",
+        targetType: "reduction",
+        goal: weeklyGoal,
+        reasoning: `You logged ${weeklyTotal} last week - small weekly reductions compound over time`,
+      });
+    }
+
+    // Suggestion 7: Weekly exposure target
+    if (mostCommonTrigger && triggerCounts[mostCommonTrigger] >= 3) {
+      suggestions.push({
+        title: `Weekly ${mostCommonTrigger.toLowerCase()} exposure`,
+        description: `Practice resisting ${mostCommonTrigger.toLowerCase()}-related urges 5 times this week`,
+        type: "weekly",
+        targetType: "exposure",
+        goal: 5,
+        reasoning: "Repeated exposure over a week builds stronger resistance",
+      });
+    }
+
+    // Fallback suggestions if we have fewer than 3
+    if (suggestions.length < 3) {
+      const fallbackSuggestions = [
+        {
+          title: "Practice 5-minute mindfulness",
+          description: "Use the breathing exercise when you feel an urge",
+          type: "daily" as const,
+          targetType: "mindfulness" as const,
+          goal: 3,
+          reasoning: "Mindfulness helps create space between urge and action",
+        },
+        {
+          title: "Delay compulsions by 5 minutes",
+          description: "When you feel an urge, wait 5 minutes before acting",
+          type: "daily" as const,
+          targetType: "exposure" as const,
+          goal: 2,
+          reasoning: "Delaying compulsions reduces their intensity over time",
+        },
+        {
+          title: "Weekly journaling goal",
+          description: "Log at least 15 compulsions this week",
+          type: "weekly" as const,
+          targetType: "mindfulness" as const,
+          goal: 15,
+          reasoning: "Weekly tracking provides comprehensive pattern insights",
+        },
+        {
+          title: "Track all compulsions today",
+          description: "Log every compulsion to build awareness of patterns",
+          type: "daily" as const,
+          targetType: "mindfulness" as const,
+          goal: 5,
+          reasoning: "Tracking helps identify triggers and patterns",
+        },
+        {
+          title: "Reduce total compulsion time",
+          description: "Limit compulsion time to 20 minutes total today",
+          type: "daily" as const,
+          targetType: "reduction" as const,
+          goal: 20,
+          reasoning: "Gradual time reduction makes progress sustainable",
+        },
+        {
+          title: "Weekly exposure practice",
+          description: "Practice exposure to 3 different triggers this week",
+          type: "weekly" as const,
+          targetType: "exposure" as const,
+          goal: 3,
+          reasoning: "Regular exposure reduces trigger sensitivity",
+        },
+        {
+          title: "Practice urge surfing",
+          description: "Observe urges without acting on them - like waves that pass",
+          type: "daily" as const,
+          targetType: "exposure" as const,
+          goal: 3,
+          reasoning: "Observing urges helps break the compulsion cycle",
+        },
+      ];
+
+      // Add fallback suggestions until we have at least 3
+      for (const fallback of fallbackSuggestions) {
+        if (suggestions.length >= 3) break;
+        
+        // Check if this suggestion title is unique
+        const isDuplicate = suggestions.some(s => 
+          s.title.toLowerCase().includes(fallback.title.toLowerCase().substring(0, 15))
+        );
+        
+        if (!isDuplicate) {
+          suggestions.push(fallback);
+        }
+      }
+    }
+
+    // Filter out targets that already exist
+    const existingTitles = existingTargets.map((t: any) => t.title.toLowerCase());
+    const uniqueSuggestions = suggestions.filter(
+      (s) => !existingTitles.some((existing) => existing.includes(s.title.toLowerCase().substring(0, 20)))
+    );
+
+    // Ensure we always return at least 3 suggestions (use all suggestions if filtering left us with less)
+    const finalSuggestions = uniqueSuggestions.length >= 3 
+      ? uniqueSuggestions.slice(0, 3)
+      : suggestions.slice(0, 3); // Use unfiltered if we don't have enough unique ones
+
+    // Return top 3 suggestions
+    const result = {
+      suggestions: finalSuggestions,
       stats: {
         mostCommonTrigger,
         mostCommonCompulsion,
@@ -180,15 +321,7 @@ const result = {
     // Cache for 6 hours
     setCache(cacheKey, result);
 
-    return NextResponse.json(resulteturn NextResponse.json({
-      suggestions: uniqueSuggestions.slice(0, 3),
-      stats: {
-        mostCommonTrigger,
-        mostCommonCompulsion,
-        avgCompulsionsPerDay: Math.round(avgCompulsionsPerDay * 10) / 10,
-        avgTimePerDay: Math.round(avgTimePerDay),
-      },
-    });
+    return NextResponse.json(result);
 
   } catch (error) {
     console.error("[Suggest Targets API] Error:", error);

@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Navigation from "@/components/Navigation";
 import SummaryCard from "@/components/SummaryCard";
+import DocumentUploadCard from "@/components/DocumentUploadCard";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Loader2, Download, Calendar } from "lucide-react";
 import { 
   BarChart, 
@@ -42,20 +45,32 @@ interface WeeklySummaryData {
  */
 const WeeklySummaryPage = () => {
   const router = useRouter();
+  const { user, token } = useAuth();
   const [summaryData, setSummaryData] = useState<WeeklySummaryData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchWeeklySummary();
-  }, []);
+    if (user) {
+      fetchWeeklySummary();
+    }
+  }, [user, token]);
 
   const fetchWeeklySummary = async () => {
+    if (!user) return;
+    
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch("/api/summary?userId=user123");
+      const headers: HeadersInit = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`/api/summary?userId=${user.id}`, {
+        headers,
+      });
       
       if (!response.ok) {
         throw new Error("Failed to fetch summary");
@@ -76,44 +91,53 @@ const WeeklySummaryPage = () => {
     alert("Export feature coming soon!");
   };
 
+  if (!user) {
+    return null;
+  }
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F5F6FA] flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="w-12 h-12 animate-spin text-[#2563EB] mx-auto" />
-          <p className="text-gray-600">Generating your summary...</p>
+      <ProtectedRoute>
+        <div className="min-h-screen bg-[#F5F6FA] flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <Loader2 className="w-12 h-12 animate-spin text-[#2563EB] mx-auto" />
+            <p className="text-gray-600">Generating your summary...</p>
+          </div>
         </div>
-      </div>
+      </ProtectedRoute>
     );
   }
 
   if (error || !summaryData) {
     return (
-      <div className="min-h-screen bg-[#F5F6FA]">
-        <header className="sticky top-0 bg-white border-b border-gray-200 shadow-sm z-10">
-          <div className="container mx-auto px-4 py-4">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
+      <ProtectedRoute>
+        <div className="min-h-screen bg-[#F5F6FA]">
+          <header className="sticky top-0 bg-white border-b border-gray-200 shadow-sm z-10">
+            <div className="container mx-auto px-4 py-4">
+              <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </div>
+          </header>
+          <div className="container mx-auto px-4 py-8 max-w-2xl">
+            <Card className="p-8 text-center">
+              <p className="text-red-600">{error || "No data available"}</p>
+              <Button
+                onClick={fetchWeeklySummary}
+                className="mt-4 bg-[#2563EB] hover:bg-[#1D4ED8]"
+              >
+                Try Again
+              </Button>
+            </Card>
           </div>
-        </header>
-        <div className="container mx-auto px-4 py-8 max-w-2xl">
-          <Card className="p-8 text-center">
-            <p className="text-red-600">{error || "No data available"}</p>
-            <Button
-              onClick={fetchWeeklySummary}
-              className="mt-4 bg-[#2563EB] hover:bg-[#1D4ED8]"
-            >
-              Try Again
-            </Button>
-          </Card>
         </div>
-      </div>
+      </ProtectedRoute>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F6FA]">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-[#F5F6FA]">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
@@ -222,6 +246,9 @@ const WeeklySummaryPage = () => {
             </div>
           </div>
         </Card>
+
+        {/* Document Upload Section */}
+        <DocumentUploadCard userId={user.id} />
 
         {/* 2. DATA & TRENDS SECTION - SUPPORTING EVIDENCE */}
         <div>
@@ -342,6 +369,7 @@ const WeeklySummaryPage = () => {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   );
 };
 

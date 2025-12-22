@@ -6,6 +6,7 @@
 
 import { rateLimitedCall, withRetry } from './gemini-queue';
 import { getCached, setCache } from './gemini-cache';
+import type { InsightData } from './behavioral-insights';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
@@ -310,5 +311,170 @@ Example format:
       "Tracking your patterns is a powerful tool for change.",
       "Keep going—you're building resilience.",
     ];
+  }
+}
+
+/**
+ * Transform structured behavioral insights into human-readable text
+ * @param insight - Structured insight from behavioral analysis
+ * @returns Concise, human-readable explanation
+ */
+export async function explainBehavioralInsight(insight: InsightData): Promise<string> {
+  try {
+    // Check cache
+    const cacheKey = `insight:${insight.pattern}:${JSON.stringify(insight.statistics)}`;
+    const cached = getCached<string>(cacheKey);
+    if (cached) return cached;
+
+    const prompt = `Transform this detected behavioral pattern into one concise sentence (max 20 words).
+
+Pattern: ${insight.pattern}
+Category: ${insight.category}
+Statistics: ${JSON.stringify(insight.statistics)}
+Confidence: ${Math.round(insight.confidence * 100)}%
+
+Rules:
+- ONE sentence only (max 20 words)
+- Factual, grounded in the statistics
+- Supportive, non-judgmental tone
+- Use "seems", "appears", "tends to" (tentative language)
+- NO advice or suggestions
+- Focus on observation only
+
+Example outputs:
+"Your compulsions peak around 3 PM, with 45% occurring in afternoon hours."
+"Checking compulsions appear 60% more often on Mondays."
+"Higher anxiety seems linked to 40% longer compulsion time."
+
+Provide ONLY the sentence.`;
+
+    const text = await rateLimitedCall(() => callGemini(prompt));
+    const cleaned = text.trim().replace(/^["']|["']$/g, '');
+    
+    // Enforce max 20 words
+    const words = cleaned.split(/\s+/);
+    const result = words.length > 20 
+      ? words.slice(0, 20).join(' ') + '.'
+      : cleaned;
+
+    setCache(cacheKey, result);
+    return result;
+  } catch (error) {
+    console.error("Gemini API error:", error);
+    // Return a generic fallback based on pattern type
+    return `Pattern detected in ${insight.category} with ${Math.round(insight.confidence * 100)}% confidence.`;
+  }
+}
+
+/**
+ * Generate dashboard snapshot from structured behavioral insights
+ * @param topInsight - Highest confidence insight
+ * @returns Short observation
+ */
+export async function generateDashboardSnapshotFromInsight(topInsight: InsightData | null): Promise<string> {
+  if (!topInsight) {
+    return "Continue tracking to reveal patterns.";
+  }
+
+  try {
+    return await explainBehavioralInsight(topInsight);
+  } catch (error) {
+    console.error("Error generating dashboard snapshot:", error);
+    return "Continue tracking to reveal patterns.";
+  }
+}
+
+/**
+ * Generate neutral reflection on check-in trends over time
+ * @param checkIns - Array of check-in responses
+ * @returns Neutral, trend-based reflection (no clinical assessment)
+ */
+export async function generateCheckInReflection(checkIns: any[]): Promise<string> {
+  if (checkIns.length < 2) {
+    return "Complete a few more check-ins to see trends over time.";
+  }
+
+  try {
+    // Calculate trend data
+    const recent = checkIns.slice(0, Math.min(5, checkIns.length));
+    const older = checkIns.slice(Math.min(5, checkIns.length));
+    
+    const recentAvg = recent.reduce((sum, c) => sum + c.totalScore, 0) / recent.length;
+    const olderAvg = older.length > 0 
+      ? older.reduce((sum, c) => sum + c.totalScore, 0) / older.length
+      : recentAvg;
+
+    const trend = recentAvg > olderAvg ? 'increased' : recentAvg < olderAvg ? 'decreased' : 'stable';
+    const change = Math.abs(recentAvg - olderAvg);
+
+    const prompt = `Generate one neutral, factual observation (max 25 words) about check-in response trends.
+
+Recent average score: ${Math.round(recentAvg * 10) / 10}
+Previous average score: ${Math.round(olderAvg * 10) / 10}
+Trend: ${trend}
+Change magnitude: ${Math.round(change * 10) / 10}
+
+Rules:
+- ONE sentence only (max 25 words)
+- Purely observational, no interpretation
+- Neutral tone, no clinical terms
+- No advice, recommendations, or assessments
+- Focus on what changed, not why
+
+Examples:
+"Your check-in scores have decreased by an average of 2.3 points over recent responses."
+"Check-in responses remain relatively stable compared to previous weeks."
+
+Provide ONLY the sentence.`;
+
+    const text = await rateLimitedCall(() => callGemini(prompt));
+    const cleaned = text.trim().replace(/^["']|["']$/g, '');
+    
+    const words = cleaned.split(/\s+/);
+    return words.length > 25 
+      ? words.slice(0, 25).join(' ') + '.'
+      : cleaned;
+
+  } catch (error) {
+    console.error("Gemini API error:", error);
+    return "Check-in data recorded for longitudinal tracking.";
+  }
+}
+
+/**
+ * Summarize OCR-extracted document text for readability
+ * @param ocrText - Raw OCR extracted text
+ * @returns Neutral, readable summary
+ */
+export async function summarizeDocument(ocrText: string): Promise<string> {
+  try {
+    // Check cache
+    const cacheKey = `document:summary:${ocrText.substring(0, 100)}`;
+    const cached = getCached<string>(cacheKey);
+    if (cached) return cached;
+
+    const prompt = `Summarize this document text in 2-3 neutral, factual sentences. Be concise and readable.
+
+Document text:
+${ocrText.substring(0, 2000)}${ocrText.length > 2000 ? '...' : ''}
+
+Rules:
+- 2-3 sentences maximum
+- Neutral, factual tone
+- No clinical interpretation or assessment
+- Focus on what the document contains
+- NO advice or recommendations
+
+Provide ONLY the summary.`;
+
+    const text = await rateLimitedCall(() => callGemini(prompt));
+    const cleaned = text.trim().replace(/^["']|["']$/g, '');
+    
+    setCache(cacheKey, cleaned);
+    return cleaned;
+
+  } catch (error) {
+    console.error("Gemini API error:", error);
+    return "Document text extracted and stored for reference.";
   }
 }

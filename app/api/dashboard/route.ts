@@ -4,7 +4,9 @@ import JournalEntry from "@/lib/models/JournalEntry";
 import Mood from "@/lib/models/Mood";
 import Target from "@/lib/models/Target";
 import PanicEvent from "@/lib/models/PanicEvent";
-import { generateDashboardSnapshot } from "@/lib/gemini";
+import { generateDashboardSnapshotFromInsight } from "@/lib/gemini";
+import { analyzeBehavioralPatterns, getTopInsights } from "@/lib/behavioral-insights";
+import { getCached, setCache } from "@/lib/gemini-cache";
 
 /**
  * GET /api/dashboard?userId=X
@@ -189,25 +191,37 @@ export async function GET(request: NextRequest) {
       correlationHint = "💡 Higher mood on days with pause sessions";
     }
 
-    // Generate AI snapshot (short insight)
+    // Generate AI snapshot using behavioral insight engine
     let aiInsight = "Start logging to see patterns.";
-    if (entries.length > 0) {
+    if (entries.length >= 5) { // Need at least 5 entries for pattern detection
       try {
-        const avgTimeSpent = entries.length > 0 
-          ? entries.reduce((sum: number, e: any) => sum + (e.timeSpent || 0), 0) / entries.length
-          : 0;
+        // Check cache first
+        const cacheKey = `dashboard:behavioral:${userId}:${entries.length}`;
+        let cachedInsight = getCached<string>(cacheKey);
         
-        aiInsight = await generateDashboardSnapshot({
-          totalCompulsions,
-          compulsionChange: -15, // TODO: Calculate from previous week
-          avgAnxiety,
-          targetCompletion,
-          journalEntries: entries.length,
-          panicEpisodes: panicEvents.length,
-        });
+        if (!cachedInsight) {
+          // Run behavioral analysis (deterministic pattern detection)
+          const behavioralAnalysis = await analyzeBehavioralPatterns({
+            journalEntries: entries,
+            panicEvents: panicEvents,
+            targets: targets,
+          });
+
+          // Get top insight
+          const topInsights = getTopInsights(behavioralAnalysis, 1);
+          const topInsight = topInsights[0] || null;
+
+          // Transform to human-readable text using LLM
+          aiInsight = await generateDashboardSnapshotFromInsight(topInsight);
+          
+          // Cache the result (1 hour)
+          setCache(cacheKey, aiInsight);
+        } else {
+          aiInsight = cachedInsight;
+        }
       } catch (error) {
-        console.error("[Dashboard API] AI snapshot error:", error);
-        aiInsight = "Compulsions dropped on days you logged more pauses — consistency is helping.";
+        console.error("[Dashboard API] Behavioral insight error:", error);
+        aiInsight = "Continue tracking to reveal patterns.";
       }
     }
 

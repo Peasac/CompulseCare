@@ -1,192 +1,71 @@
 import { NextRequest, NextResponse } from "next/server";
-
-/**
- * Authentication API Stub
- * POST /api/auth/login - User login
- * 
- * IMPORTANT: This is a basic stub. For production, use:
- * - NextAuth.js (https://next-auth.js.org/)
- * - Firebase Authentication
- * - Auth0, Clerk, or similar
- * 
- * TODO: Implement proper authentication
- * TODO: Add JWT token generation
- * TODO: Add session management
- * TODO: Add password hashing with bcrypt
- */
-
-interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-interface LoginResponse {
-  success: boolean;
-  user?: {
-    id: string;
-    email: string;
-    name: string;
-  };
-  token?: string;
-  error?: string;
-}
+import connectToDatabase from "@/lib/mongodb";
+import User from "@/lib/models/User";
+import { generateToken } from "@/lib/auth";
 
 /**
  * POST /api/auth/login
- * Basic login stub - REPLACE WITH REAL AUTH
+ * Authenticate user and return JWT token
+ * 
+ * Body: { email: string, password: string }
+ * Returns: { token: string, user: { id, email, name } }
  */
 export async function POST(request: NextRequest) {
   try {
-    const body: LoginRequest = await request.json();
+    const body = await request.json();
     const { email, password } = body;
 
     // Validation
     if (!email || !password) {
       return NextResponse.json(
-        { 
-          success: false,
-          error: "Email and password are required" 
-        },
+        { error: "Email and password are required" },
         { status: 400 }
       );
     }
 
-    // TODO: Query database for user
-    /*
-    const user = await db.users.findUnique({
-      where: { email },
-    });
+    await connectToDatabase();
 
+    // Find user
+    const user = await User.findOne({ email: email.toLowerCase() });
+    
     if (!user) {
       return NextResponse.json(
-        { success: false, error: "Invalid credentials" },
+        { error: "Invalid email or password" },
         { status: 401 }
       );
     }
 
-    // Verify password with bcrypt
-    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
+    // Verify password
+    const isValidPassword = await user.comparePassword(password);
     
     if (!isValidPassword) {
       return NextResponse.json(
-        { success: false, error: "Invalid credentials" },
+        { error: "Invalid email or password" },
         { status: 401 }
       );
     }
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      process.env.JWT_SECRET!,
-      { expiresIn: '7d' }
-    );
-    */
+    const token = generateToken({
+      userId: user._id.toString(),
+      email: user.email,
+    });
 
-    // MOCK RESPONSE - accepts any email/password for demo
-    console.log(`[Auth API] Login attempt for: ${email}`);
-
-    const mockResponse: LoginResponse = {
-      success: true,
+    // Return token and user info (exclude password)
+    return NextResponse.json({
+      token,
       user: {
-        id: "user123",
-        email: email,
-        name: "Demo User",
+        id: user._id.toString(),
+        email: user.email,
+        name: user.name || null,
       },
-      token: "mock-jwt-token-replace-with-real-auth",
-    };
-
-    return NextResponse.json(mockResponse, { status: 200 });
+    });
 
   } catch (error) {
-    console.error("[Auth API] Error:", error);
+    console.error("Login error:", error);
     return NextResponse.json(
-      { 
-        success: false,
-        error: "Internal server error" 
-      },
+      { error: "Authentication failed" },
       { status: 500 }
     );
   }
 }
-
-// TODO: Implement with NextAuth.js
-/*
-// File: app/api/auth/[...nextauth]/route.ts
-
-import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
-
-const handler = NextAuth({
-  providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
-      },
-      async authorize(credentials) {
-        // Implement your auth logic here
-        const user = await verifyCredentials(credentials);
-        if (user) {
-          return user;
-        }
-        return null;
-      }
-    }),
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-  ],
-  pages: {
-    signIn: '/login',
-  },
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id;
-      }
-      return session;
-    },
-  },
-});
-
-export { handler as GET, handler as POST };
-*/
-
-// TODO: Firebase Auth Integration
-/*
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-
-const auth = getAuth();
-
-export async function POST(request: NextRequest) {
-  const { email, password } = await request.json();
-  
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    const token = await user.getIdToken();
-    
-    return NextResponse.json({
-      success: true,
-      user: { id: user.uid, email: user.email },
-      token,
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 401 }
-    );
-  }
-}
-*/
-
-// Commit message: feat: add /api/auth/login stub with NextAuth and Firebase integration notes

@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from "@/components/Navigation";
 import TargetCard from "@/components/TargetCard";
 import { ArrowLeft, Plus, Loader2, Trophy } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Target {
   id: string;
@@ -28,6 +29,7 @@ interface Target {
  */
 const TargetsPage = () => {
   const router = useRouter();
+  const { user, isLoading: authLoading } = useAuth();
   const [targets, setTargets] = useState<Target[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"daily" | "weekly">("daily");
@@ -43,14 +45,30 @@ const TargetsPage = () => {
   });
 
   useEffect(() => {
-    fetchTargets();
-  }, []);
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
+  useEffect(() => {
+    if (user) {
+      fetchTargets();
+    }
+  }, [user]);
 
   const fetchTargets = async () => {
+    if (!user) return;
+    
     setIsLoading(true);
     
     try {
-      const response = await fetch("/api/targets?userId=user123");
+      const token = localStorage.getItem("token");
+      const headers: HeadersInit = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`/api/targets?userId=${user.id}`, { headers });
       if (response.ok) {
         const data = await response.json();
         // Transform API data to match component expectations
@@ -79,14 +97,20 @@ const TargetsPage = () => {
 
   const handleCompleteTarget = async (targetId: string) => {
     const target = targets.find((t) => t.id === targetId);
-    if (!target) return;
+    if (!target || !user) return;
 
     try {
+      const token = localStorage.getItem("token");
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      
       const response = await fetch("/api/targets", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
-          userId: "user123",
+          userId: user.id,
           title: target.title,
           description: target.description,
           type: target.type,
@@ -110,6 +134,38 @@ const TargetsPage = () => {
     } catch (error) {
       console.error("Failed to complete target:", error);
       alert("Failed to mark target as complete. Please try again.");
+    }
+  };
+
+  const handleDeleteTarget = async (targetId: string) => {
+    if (!user) return;
+
+    // Optimistically remove from UI
+    const deletedTarget = targets.find(t => t.id === targetId);
+    setTargets((prev) => prev.filter((t) => t.id !== targetId));
+
+    try {
+      const token = localStorage.getItem("token");
+      const headers: HeadersInit = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/targets/${targetId}`, {
+        method: "DELETE",
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete target");
+      }
+    } catch (error) {
+      console.error("Failed to delete target:", error);
+      // Restore on error
+      if (deletedTarget) {
+        setTargets((prev) => [...prev, deletedTarget]);
+      }
+      alert("Failed to delete target. Please try again.");
     }
   };
 
@@ -139,10 +195,19 @@ const TargetsPage = () => {
   };
 
   const handleGetSuggestions = async () => {
+    if (!user) return;
+    
     setLoadingSuggestions(true);
     try {
-      const response = await fetch("/api/targets/suggest?userId=user123", {
+      const token = localStorage.getItem("token");
+      const headers: HeadersInit = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`/api/targets/suggest?userId=${user.id}`, {
         method: "POST",
+        headers,
       });
       if (response.ok) {
         const data = await response.json();
@@ -160,12 +225,20 @@ const TargetsPage = () => {
   };
 
   const handleAddSuggestedTarget = async (suggestion: any) => {
+    if (!user) return;
+    
     try {
+      const token = localStorage.getItem("token");
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      
       const response = await fetch("/api/targets", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
-          userId: "user123",
+          userId: user.id,
           title: suggestion.title,
           description: suggestion.description,
           type: suggestion.type,
@@ -348,6 +421,7 @@ const TargetsPage = () => {
                   key={target.id}
                   target={target}
                   onComplete={handleCompleteTarget}
+                  onDelete={handleDeleteTarget}
                 />
               ))
             )}
@@ -374,6 +448,7 @@ const TargetsPage = () => {
                   key={target.id}
                   target={target}
                   onComplete={handleCompleteTarget}
+                  onDelete={handleDeleteTarget}
                 />
               ))
             )}

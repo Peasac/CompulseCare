@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Target, CheckCircle2, Circle } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DailyTarget {
   _id: string;
@@ -15,13 +16,22 @@ interface DailyTarget {
 }
 
 export default function DailyTargetsWidget() {
+  const { user } = useAuth();
   const [targets, setTargets] = useState<DailyTarget[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user) return;
+    
     async function fetchTargets() {
       try {
-        const response = await fetch("/api/targets?userId=user123");
+        const token = localStorage.getItem("token");
+        const headers: HeadersInit = {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+        
+        const response = await fetch(`/api/targets?userId=${user.id}`, { headers });
         if (response.ok) {
           const data = await response.json();
           setTargets(data.targets || []);
@@ -34,27 +44,31 @@ export default function DailyTargetsWidget() {
     }
 
     fetchTargets();
-  }, []);
+  }, [user]);
 
   const handleToggle = async (targetId: string) => {
     const target = targets.find((t) => t._id === targetId);
-    if (!target) return;
+    if (!target || !user) return;
+
+    const newCompletedState = !target.completed;
 
     // Optimistically update UI
     setTargets((prev) =>
-      prev.map((t) => (t._id === targetId ? { ...t, completed: !t.completed } : t))
+      prev.map((t) => (t._id === targetId ? { ...t, completed: newCompletedState } : t))
     );
 
     try {
-      const response = await fetch("/api/targets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const token = localStorage.getItem("token");
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`/api/targets/${targetId}`, {
+        method: "PATCH",
+        headers,
         body: JSON.stringify({
-          userId: "user123",
-          title: target.title,
-          description: target.description,
-          type: target.type,
-          completed: !target.completed,
+          completed: newCompletedState,
         }),
       });
 
@@ -87,6 +101,8 @@ export default function DailyTargetsWidget() {
     }
   };
 
+  const dailyTargets = targets.filter(t => t.type === "daily");
+
   return (
     <Card className="p-6 bg-card shadow-soft border-border">
       <div className="flex items-center justify-between mb-4">
@@ -111,9 +127,9 @@ export default function DailyTargetsWidget() {
         </div>
       ) : (
         <>
-          {/* Targets List - Max 3 */}
+          {/* Targets List - Max 3 daily */}
           <div className="space-y-3">
-            {targets.slice(0, 3).map((target) => (
+            {dailyTargets.slice(0, 3).map((target) => (
               <div
                 key={target._id}
                 className="p-3 rounded-md border border-border bg-card hover:bg-muted/30 transition-calm"
@@ -156,7 +172,7 @@ export default function DailyTargetsWidget() {
             href="/targets"
             className="block mt-4 text-center text-sm text-muted-foreground hover:text-foreground transition-calm"
           >
-            View all targets →
+            View all daily targets ({dailyTargets.length}) →
           </Link>
         </>
       )}

@@ -8,6 +8,8 @@ export { default as JournalEntry } from './JournalEntry';
 export { default as Mood } from './Mood';
 export { default as Target } from './Target';
 export { default as PanicEvent } from './PanicEvent';
+export { default as CheckIn } from './CheckIn';
+export { default as ImportedDocument } from './ImportedDocument';
 
 export type { IUser } from './User';
 export type { IJournalEntry } from './JournalEntry';
