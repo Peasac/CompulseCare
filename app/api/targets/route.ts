@@ -137,11 +137,12 @@ export async function POST(request: NextRequest) {
       pinned: pinned || false,
     });
 
-    console.log(`[Targets API] New target created for user ${userId}: ${title}`);
+    console.log(`[Targets API] New target created for user ${userId}: ${title} (pinned: ${pinned})`);
 
     return NextResponse.json(
       {
         id: newTarget._id.toString(),
+        _id: newTarget._id.toString(),
         userId: newTarget.userId,
         title: newTarget.title,
         description: newTarget.description,
@@ -150,6 +151,7 @@ export async function POST(request: NextRequest) {
         goal: newTarget.goal,
         current: 0,
         completed: false,
+        pinned: newTarget.pinned || false,
         createdAt: newTarget.createdAt.toISOString(),
       },
       { status: 201 }
