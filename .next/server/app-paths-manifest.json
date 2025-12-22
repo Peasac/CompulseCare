@@ -1,11 +1,7 @@
 {
-  "/page": "app/page.js",
   "/signup/page": "app/signup/page.js",
   "/targets/page": "app/targets/page.js",
   "/mood/page": "app/mood/page.js",
-  "/checkin/page": "app/checkin/page.js",
-  "/api/targets/route": "app/api/targets/route.js",
-  "/api/targets/[id]/route": "app/api/targets/[id]/route.js",
-  "/api/journal/route": "app/api/journal/route.js",
-  "/api/dashboard/route": "app/api/dashboard/route.js"
+  "/page": "app/page.js",
+  "/checkin/page": "app/checkin/page.js"
 }

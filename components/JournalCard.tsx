@@ -27,13 +27,25 @@ interface JournalCardProps {
 const JournalCard = ({ entry, compact = false }: JournalCardProps) => {
   const { triggers, note, timeSpent, timestamp, mood } = entry;
 
+  // Safely format timestamp - handle invalid dates
+  const formatTimestamp = () => {
+    if (!timestamp) return "Recently";
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) return "Recently";
+      return formatDistanceToNow(date, { addSuffix: true });
+    } catch {
+      return "Recently";
+    }
+  };
+
   return (
     <Card className={`${compact ? 'p-4' : 'p-5'} shadow-soft hover:shadow-soft-lg transition-calm bg-white border-gray-100`}>
       {/* Header with timestamp */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <Calendar className="w-4 h-4" />
-          <span>{formatDistanceToNow(new Date(timestamp), { addSuffix: true })}</span>
+          <span>{formatTimestamp()}</span>
         </div>
         {mood && (
           <span className="text-xl" aria-label={`Mood: ${mood}`}>
