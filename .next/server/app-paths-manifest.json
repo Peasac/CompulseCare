@@ -1,7 +1,7 @@
 {
-  "/panic/page": "app/panic/page.js",
+  "/page": "app/page.js",
   "/targets/page": "app/targets/page.js",
-  "/journal/page": "app/journal/page.js",
+  "/panic/page": "app/panic/page.js",
   "/summary/page": "app/summary/page.js",
-  "/page": "app/page.js"
+  "/checkin/page": "app/checkin/page.js"
 }

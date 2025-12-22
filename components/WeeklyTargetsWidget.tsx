@@ -37,7 +37,7 @@ export default function WeeklyTargetsWidget() {
           // Only show pinned weekly targets
           const weeklyTargets = (data.targets || [])
             .filter((t: WeeklyTarget) => t.type === "weekly" && (t as any).pinned)
-            .slice(0, 2);
+            .slice(0, 3);
           setTargets(weeklyTargets);
         }
       } catch (error) {
@@ -108,13 +108,13 @@ export default function WeeklyTargetsWidget() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Calendar className="w-5 h-5 text-purple-600" />
-          <h3 className="font-medium text-base text-foreground">Weekly Targets (Pinned)</h3>
+          <h3 className="font-medium text-base text-foreground">Weekly Targets</h3>
         </div>
       </div>
 
       {loading ? (
         <div className="space-y-3">
-          {[1, 2].map((i) => (
+          {[1, 2, 3].map((i) => (
             <div key={i} className="h-20 bg-muted/20 rounded-md animate-pulse" />
           ))}
         </div>

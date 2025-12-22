@@ -48,6 +48,7 @@ export async function GET(request: NextRequest) {
 
     const formattedTargets = targets.map((target: any) => ({
       id: target._id.toString(),
+      _id: target._id.toString(),
       userId: target.userId,
       title: target.title,
       description: target.description,
@@ -56,6 +57,7 @@ export async function GET(request: NextRequest) {
       goal: target.goal,
       current: target.completed ? target.goal : 0,
       completed: target.completed,
+      pinned: target.pinned || false,
       deadline: target.type === "daily" ? "Today, 11:59 PM" : "This Week",
       createdAt: target.createdAt.toISOString(),
     }));
@@ -84,7 +86,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, title, description, type, goal } = body;
+    const { userId, title, description, type, goal, pinned } = body;
 
     // Validation
     if (!userId || !title || !type || !goal) {
@@ -117,6 +119,7 @@ export async function POST(request: NextRequest) {
           goal,
           current: 0,
           completed: false,
+          pinned: pinned || false,
           createdAt: new Date().toISOString(),
         },
         { status: 201 }
@@ -131,6 +134,7 @@ export async function POST(request: NextRequest) {
       targetType: "reduction",
       goal,
       completed: false,
+      pinned: pinned || false,
     });
 
     console.log(`[Targets API] New target created for user ${userId}: ${title}`);

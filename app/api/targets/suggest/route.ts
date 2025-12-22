@@ -61,6 +61,17 @@ export async function POST(request: NextRequest) {
       .lean();
 
     const existingTargets = await Target.find({ userId } as any).lean();
+    const completedTargets = existingTargets.filter((t: any) => t.completed);
+    const activeTargets = existingTargets.filter((t: any) => !t.completed);
+    
+    // Calculate progress metrics
+    const completionRate = existingTargets.length > 0 
+      ? (completedTargets.length / existingTargets.length) * 100 
+      : 0;
+    const recentCompletions = completedTargets.filter((t: any) => {
+      const completedDate = new Date(t.completedAt || t.updatedAt);
+      return completedDate >= sevenDaysAgo;
+    }).length;
 
     if (entries.length === 0) {
       // Return starter suggestions for new users
@@ -98,6 +109,8 @@ export async function POST(request: NextRequest) {
           mostCommonCompulsion: null,
           avgCompulsionsPerDay: 0,
           avgTimePerDay: 0,
+          completionRate: 0,
+          recentCompletions: 0,
         },
       });
     }
@@ -129,10 +142,35 @@ export async function POST(request: NextRequest) {
 
     const suggestions: SuggestedTarget[] = [];
 
+    // Add progress-based motivational suggestions
+    if (completionRate >= 70 && recentCompletions >= 3) {
+      // User is doing well - offer challenge targets
+      suggestions.push({
+        title: "Challenge: Try exposure to difficult trigger",
+        description: `You've completed ${recentCompletions} targets recently! Ready for a bigger challenge?`,
+        type: "daily",
+        targetType: "exposure",
+        goal: 1,
+        reasoning: `Your ${Math.round(completionRate)}% completion rate shows you're ready for advanced exposure work`,
+      });
+    } else if (completionRate < 30 && activeTargets.length > 3) {
+      // User struggling - offer simpler targets
+      suggestions.push({
+        title: "Start small: Track just one compulsion",
+        description: "Focus on awareness rather than reduction for now",
+        type: "daily",
+        targetType: "mindfulness",
+        goal: 1,
+        reasoning: "Building consistency with smaller goals first creates sustainable progress",
+      });
+    }
+
     // Suggestion 1: Reduce most common trigger
     if (mostCommonTrigger && triggerCounts[mostCommonTrigger] >= 3) {
       const currentCount = triggerCounts[mostCommonTrigger];
-      const targetReduction = Math.max(1, Math.floor(currentCount * 0.7)); // 30% reduction
+      // Adjust reduction based on completion rate
+      const reductionFactor = completionRate >= 50 ? 0.6 : 0.7; // More aggressive if doing well
+      const targetReduction = Math.max(1, Math.floor(currentCount * reductionFactor));
       
       suggestions.push({
         title: `Reduce ${mostCommonTrigger.toLowerCase()} compulsions`,
@@ -140,11 +178,11 @@ export async function POST(request: NextRequest) {
         type: "daily",
         targetType: "reduction",
         goal: targetReduction,
-        reasoning: `${mostCommonTrigger} appeared ${currentCount} times this week - gradual reduction helps`,
+        reasoning: `${mostCommonTrigger} appeared ${currentCount} times this week${completionRate >= 50 ? " - you're ready for bigger reductions!" : " - gradual reduction helps"}`,
       });
     }
 
-    // Suggestion 2: Limit most frequent compulsion
+    // Suggestion 2: Limit most frequent compulsion (personalized to OCD type)
     if (mostCommonCompulsion && compulsionFrequency[mostCommonCompulsion] >= 5) {
       suggestions.push({
         title: `Pause before "${mostCommonCompulsion.substring(0, 30)}..."`,
@@ -152,13 +190,14 @@ export async function POST(request: NextRequest) {
         type: "daily",
         targetType: "mindfulness",
         goal: 3,
-        reasoning: "Mindfulness helps break automatic patterns",
+        reasoning: `This specific compulsion occurred ${compulsionFrequency[mostCommonCompulsion]} times - mindfulness helps break automatic patterns`,
       });
     }
 
-    // Suggestion 3: Reduce daily time spent
+    // Suggestion 3: Reduce daily time spent (adapted to progress)
     if (avgTimePerDay > 30) {
-      const targetTime = Math.max(15, Math.floor(avgTimePerDay * 0.8)); // 20% reduction
+      const reductionFactor = completionRate >= 60 ? 0.75 : 0.8; // More ambitious if succeeding
+      const targetTime = Math.max(15, Math.floor(avgTimePerDay * reductionFactor));
       
       suggestions.push({
         title: "Reduce time spent on compulsions",
@@ -330,6 +369,10 @@ export async function POST(request: NextRequest) {
         mostCommonCompulsion,
         avgCompulsionsPerDay: Math.round(avgCompulsionsPerDay * 10) / 10,
         avgTimePerDay: Math.round(avgTimePerDay),
+        completionRate: Math.round(completionRate),
+        recentCompletions,
+        totalTargets: existingTargets.length,
+        activeTargets: activeTargets.length,
       },
     };
 

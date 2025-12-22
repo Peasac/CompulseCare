@@ -47,12 +47,12 @@ export async function PATCH(
         pinned: true,
       } as any);
 
-      const maxPinned = targetToPin.type === 'daily' ? 3 : 2;
+      const maxPinned = targetToPin.type === 'daily' ? 3 : 3; // Both are now 3
       
       if (pinnedCount >= maxPinned) {
         return NextResponse.json(
           { 
-            error: `Maximum ${maxPinned} ${targetToPin.type} targets can be pinned. Unpin one first.`,
+            error: `Maximum ${maxPinned} ${targetToPin.type} targets can be shown on dashboard. Remove one first.`,
             maxPinned,
           },
           { status: 400 }

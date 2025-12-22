@@ -108,7 +108,7 @@ export default function DailyTargetsWidget() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Target className="w-5 h-5 text-primary" />
-          <h3 className="font-medium text-base text-foreground">Daily Targets (Pinned)</h3>
+          <h3 className="font-medium text-base text-foreground">Daily Targets</h3>
         </div>
       </div>
 

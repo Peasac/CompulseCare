@@ -57,6 +57,73 @@ const TargetsPage = () => {
     }
   }, [user]);
 
+  // Auto-generate targets when user has none
+  useEffect(() => {
+    if (!isLoading && user && targets.length > 0) {
+      autoGenerateTargetsIfNeeded();
+    }
+  }, [targets, isLoading, user]);
+
+  const autoGenerateTargetsIfNeeded = async () => {
+    if (!user) return;
+
+    const today = new Date().toDateString();
+    const lastAutoGenDate = localStorage.getItem(`lastAutoGen_${user.id}`);
+    
+    // Only auto-generate once per day
+    if (lastAutoGenDate === today) return;
+
+    const dailyTargets = targets.filter(t => t.type === 'daily' && !t.completed);
+    const weeklyTargets = targets.filter(t => t.type === 'weekly' && !t.completed);
+
+    // Auto-generate if less than 3 targets
+    if (dailyTargets.length < 3) {
+      await autoGenerateTargets('daily', 3 - dailyTargets.length);
+    }
+    
+    // Check if it's Monday (start of week) for weekly targets
+    const dayOfWeek = new Date().getDay();
+    if (dayOfWeek === 1 && weeklyTargets.length < 3) { // Monday = 1
+      await autoGenerateTargets('weekly', 3 - weeklyTargets.length);
+    }
+
+    localStorage.setItem(`lastAutoGen_${user.id}`, today);
+  };
+
+  const autoGenerateTargets = async (type: 'daily' | 'weekly', count: number) => {
+    if (!user) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const headers: HeadersInit = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      
+      // Get AI suggestions
+      const response = await fetch(`/api/targets/suggest?userId=${user.id}&type=${type}`, {
+        method: "POST",
+        headers,
+      });
+      
+      if (!response.ok) return;
+      
+      const data = await response.json();
+      const suggestions = (data.suggestions || []).slice(0, count);
+
+      // Auto-add suggestions with pinned=true
+      for (const suggestion of suggestions) {
+        await handleAddSuggestedTarget(suggestion, true); // true = silent mode, auto-pins
+      }
+
+      // Refresh targets list
+      await fetchTargets();
+      
+    } catch (error) {
+      console.error("Failed to auto-generate targets:", error);
+    }
+  };
+
   const fetchTargets = async () => {
     if (!user) return;
     
@@ -263,7 +330,7 @@ const TargetsPage = () => {
     }
   };
 
-  const handleAddSuggestedTarget = async (suggestion: any) => {
+  const handleAddSuggestedTarget = async (suggestion: any, silent = false) => {
     if (!user) return;
     
     try {
@@ -271,6 +338,15 @@ const TargetsPage = () => {
       const headers: HeadersInit = { "Content-Type": "application/json" };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      // In silent mode (auto-generation), always pin
+      // In manual mode, check if under limit
+      let shouldPin = silent;
+      if (!silent) {
+        const sameTypeTargets = targets.filter(t => t.type === suggestion.type && t.pinned);
+        const maxPinned = suggestion.type === 'daily' ? 3 : 3; // Both are now 3
+        shouldPin = sameTypeTargets.length < maxPinned;
       }
       
       const response = await fetch("/api/targets", {
@@ -283,16 +359,21 @@ const TargetsPage = () => {
           type: suggestion.type,
           goal: suggestion.goal,
           completed: false,
+          pinned: shouldPin, // Auto-pin if silent mode or under limit
         }),
       });
 
       if (response.ok) {
-        await fetchTargets();
-        setSuggestions((prev) => prev.filter((s) => s.title !== suggestion.title));
+        if (!silent) {
+          await fetchTargets();
+          setSuggestions((prev) => prev.filter((s) => s.title !== suggestion.title));
+        }
       }
     } catch (error) {
       console.error("Failed to add target:", error);
-      alert("Failed to add target. Please try again.");
+      if (!silent) {
+        alert("Failed to add target. Please try again.");
+      }
     }
   };
 

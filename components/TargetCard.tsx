@@ -105,8 +105,8 @@ const TargetCard = ({ target, onComplete, onDelete, onPin, compact = false }: Ta
               size="icon"
               onClick={handlePin}
               className={`flex-shrink-0 ${pinned ? 'bg-blue-100 hover:bg-blue-200' : 'hover:bg-gray-100'}`}
-              aria-label={pinned ? "Unpin from dashboard" : "Pin to dashboard"}
-              title={pinned ? "Unpin from dashboard" : "Pin to dashboard"}
+              aria-label={pinned ? "Remove from dashboard" : "Show on dashboard"}
+              title={pinned ? "Remove from dashboard" : "Show on dashboard"}
             >
               <Pin className={`w-4 h-4 ${pinned ? 'text-blue-600 fill-blue-600' : 'text-gray-400'}`} />
             </Button>
