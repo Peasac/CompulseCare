@@ -35,6 +35,8 @@ interface WeeklySummaryResponse {
     timeSpent: number;
   }>;
   insights: string[]; // [patterns, suggestion]
+  checkInsCount?: number;
+  panicEpisodesCount?: number;
 }
 
 // In-memory cache for AI reflections (keyed by userId + timestamp)
@@ -87,27 +89,37 @@ export async function GET(request: NextRequest) {
           createdAt: { $gte: sevenDaysAgo },
         } as any)
           .sort({ createdAt: 1 })
+          .limit(100) // Limit for performance
           .lean(),
         Mood.find({
           userId,
           createdAt: { $gte: sevenDaysAgo },
-        } as any).lean(),
-        Target.find({ userId } as any).lean(),
+        } as any)
+          .limit(50)
+          .lean(),
+        Target.find({ userId } as any)
+          .limit(50)
+          .lean(),
         PanicEvent.find({
           userId,
           createdAt: { $gte: sevenDaysAgo },
-        } as any).lean(),
+        } as any)
+          .limit(50)
+          .lean(),
         CheckIn.find({
           userId,
           createdAt: { $gte: sevenDaysAgo },
         } as any)
           .sort({ createdAt: -1 })
+          .limit(10) // Only need recent check-ins
           .lean(),
         ImportedDocument.find({ userId } as any)
           .sort({ uploadDate: -1 })
-          .limit(10)
+          .limit(5) // Only recent documents
           .lean(),
       ]);
+      
+      console.log(`[Summary API] Data fetched - Entries: ${entries.length}, Moods: ${moods.length}, CheckIns: ${checkIns.length}, Documents: ${documents.length}`);
     } else {
       console.warn('[Summary API] MongoDB not connected - using empty data');
     }
@@ -255,8 +267,8 @@ Keep tone positive, validating, and hopeful. Focus on patterns and small wins.`;
       panicEpisodes: panicEvents.length,
       mostCommonTrigger,
       checkIns: checkIns.map((c: any) => ({
-        mood: c.mood,
-        thought: c.thought,
+        mood: c.responses?.mood || c.mood || 'Unknown',
+        thought: c.notes || c.thought || '',
         date: c.createdAt,
       })),
       documents: documents.map((d: any) => ({
@@ -284,6 +296,8 @@ Keep tone positive, validating, and hopeful. Focus on patterns and small wins.`;
       moodAverage: Math.round(avgMood * 10) / 10,
       chartData,
       insights: allInsights.slice(0, 5), // Show top 5 insights
+      checkInsCount: checkIns.length,
+      panicEpisodesCount: panicEvents.length,
     };
 
     // Cache the response

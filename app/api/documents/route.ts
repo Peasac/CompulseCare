@@ -26,6 +26,7 @@ import { summarizeDocument } from "@/lib/gemini";
  *   userId: string,
  *   fileName: string,
  *   fileType: 'pdf' | 'image',
+ *   fileUrl?: string,  // Supabase URL of original document
  *   ocrText: string,  // In production, this would be extracted via OCR
  *   generateSummary: boolean
  * }
@@ -33,7 +34,7 @@ import { summarizeDocument } from "@/lib/gemini";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, fileName, fileType, ocrText, generateSummary } = body;
+    const { userId, fileName, fileType, fileUrl, ocrText, generateSummary } = body;
 
     // Validation
     if (!userId || !fileName || !fileType || !ocrText) {
@@ -75,6 +76,7 @@ export async function POST(request: NextRequest) {
       userId,
       fileName,
       fileType,
+      fileUrl,
       ocrText,
       summary,
       uploadDate: new Date(),
@@ -88,6 +90,7 @@ export async function POST(request: NextRequest) {
         userId: document.userId,
         fileName: document.fileName,
         fileType: document.fileType,
+        fileUrl: document.fileUrl,
         ocrText: document.ocrText,
         summary: document.summary,
         uploadDate: document.uploadDate.toISOString(),

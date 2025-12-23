@@ -101,18 +101,24 @@ export async function GET(request: NextRequest) {
         createdAt: { $gte: sevenDaysAgo },
       } as any)
         .sort({ createdAt: -1 })
+        .limit(100) // Limit for performance
         .lean(),
       Mood.find({
         userId,
         createdAt: { $gte: sevenDaysAgo },
       } as any)
         .sort({ createdAt: -1 })
+        .limit(50)
         .lean(),
-      Target.find({ userId } as any).lean(),
+      Target.find({ userId } as any)
+        .limit(50)
+        .lean(),
       PanicEvent.find({
         userId,
         createdAt: { $gte: sevenDaysAgo },
-      } as any).lean(),
+      } as any)
+        .limit(50)
+        .lean(),
     ]);
 
     console.log(`[Dashboard API] Generated snapshot for user ${userId}`);

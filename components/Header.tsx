@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Download, Menu, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface HeaderProps {
   userName?: string;
@@ -17,6 +18,7 @@ interface HeaderProps {
  */
 const Header = ({ userName, showExport = true, userId }: HeaderProps) => {
   const { user, logout } = useAuth();
+  const { toast } = useToast();
   const handleExport = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -63,9 +65,17 @@ const Header = ({ userName, showExport = true, userId }: HeaderProps) => {
       document.body.removeChild(a);
       
       console.log("Export completed successfully");
+      toast({
+        title: "Export successful",
+        description: "Your report has been downloaded",
+      });
     } catch (error) {
       console.error("Export error:", error);
-      alert(`Failed to export data: ${error instanceof Error ? error.message : 'Unknown error'}. Check console for details.`);
+      toast({
+        title: "Export failed",
+        description: error instanceof Error ? error.message : "Failed to export data",
+        variant: "destructive",
+      });
     }
   };
 

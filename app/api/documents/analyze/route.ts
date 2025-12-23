@@ -55,9 +55,12 @@ export async function GET(request: NextRequest) {
       analysis,
       documentCount: documents.length,
       documents: documents.map((doc: any) => ({
+        _id: doc._id.toString(),
         fileName: doc.fileName,
+        fileUrl: doc.fileUrl,
         uploadDate: doc.uploadDate,
         summary: doc.summary,
+        ocrText: doc.ocrText, // Include OCR text for viewing
       })),
     });
 

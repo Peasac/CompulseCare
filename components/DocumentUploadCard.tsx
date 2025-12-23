@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, FileText, Image as ImageIcon, Loader2 } from "lucide-react";
 import { createWorker } from "tesseract.js";
+import { uploadDocumentToSupabase } from "@/lib/supabase";
 
 export default function DocumentUploadCard({ userId }: { userId: string }) {
   const [file, setFile] = useState<File | null>(null);
+  const [fileUrl, setFileUrl] = useState<string>("");
   const [ocrText, setOcrText] = useState("");
   const [generateSummary, setGenerateSummary] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -57,11 +59,24 @@ export default function DocumentUploadCard({ userId }: { userId: string }) {
       setFile(selectedFile);
       setMessage("");
       setOcrText("");
+      setFileUrl("");
       setOcrProgress(0);
       
-      // Auto-extract text
+      // Auto-extract text and upload to Supabase
       setLoading(true);
-      setMessage("Processing document...");
+      setMessage("Uploading document...");
+      
+      try {
+        // Upload to Supabase first
+        const uploadedUrl = await uploadDocumentToSupabase(selectedFile, userId);
+        setFileUrl(uploadedUrl);
+        setMessage("Processing document...");
+      } catch (error) {
+        console.error("Upload error:", error);
+        setMessage("Failed to upload document. Please try again.");
+        setLoading(false);
+        return;
+      }
       
       try {
         let extractedText = "";
@@ -118,6 +133,7 @@ export default function DocumentUploadCard({ userId }: { userId: string }) {
           userId,
           fileName: file.name,
           fileType,
+          fileUrl,
           ocrText: ocrText.trim(),
           generateSummary,
         }),
@@ -126,6 +142,7 @@ export default function DocumentUploadCard({ userId }: { userId: string }) {
       if (res.ok) {
         setMessage("Document uploaded successfully!");
         setFile(null);
+        setFileUrl("");
         setOcrText("");
         // Reset file input
         const fileInput = document.getElementById("document-upload") as HTMLInputElement;

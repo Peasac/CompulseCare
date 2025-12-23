@@ -10,6 +10,7 @@ export interface IImportedDocument extends Document {
   userId: string;
   fileName: string;
   fileType: string; // 'pdf' | 'image'
+  fileUrl?: string; // Supabase URL of original document
   ocrText: string; // Extracted text from OCR
   summary?: string; // Optional LLM-generated summary for readability
   uploadDate: Date;
@@ -32,6 +33,9 @@ const ImportedDocumentSchema = new Schema<IImportedDocument>(
       type: String,
       required: true,
       enum: ['pdf', 'image'],
+    },
+    fileUrl: {
+      type: String,
     },
     ocrText: {
       type: String,

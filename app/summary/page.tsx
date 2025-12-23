@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { SummarySkeleton } from "@/components/LoadingSkeletons";
 import Navigation from "@/components/Navigation";
 import SummaryCard from "@/components/SummaryCard";
 import DocumentUploadCard from "@/components/DocumentUploadCard";
@@ -37,6 +38,8 @@ interface WeeklySummaryData {
     timeSpent: number;
   }[];
   insights: string[];
+  checkInsCount?: number;
+  panicEpisodesCount?: number;
 }
 
 /**
@@ -54,7 +57,7 @@ const WeeklySummaryPage = () => {
   const [documentAnalysis, setDocumentAnalysis] = useState<string | null>(null);
   const [loadingDocAnalysis, setLoadingDocAnalysis] = useState(false);
   const [uploadedDocuments, setUploadedDocuments] = useState<any[]>([]);
-  const [selectedDocOCR, setSelectedDocOCR] = useState<string | null>(null);
+  const [selectedDoc, setSelectedDoc] = useState<{fileName: string, ocrText: string, uploadDate: string} | null>(null);
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
 
   console.log('[Summary] Page loaded, user:', user?.id, 'isLoading:', isLoading);
@@ -166,12 +169,49 @@ const WeeklySummaryPage = () => {
     }
   };
 
-  const handleExport = () => {
-    // TODO: Implement PDF or CSV export
-    toast({
-      title: "Coming soon",
-      description: "Export feature is in development",
-    });
+  const handleExport = async () => {
+    try {
+      const headers: HeadersInit = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`/api/export?userId=${user?.id}`, {
+        headers,
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to generate report");
+      }
+      
+      // Get filename from header or use default
+      const contentDisposition = response.headers.get("Content-Disposition");
+      const filenameMatch = contentDisposition?.match(/filename="?(.+)"?/i);
+      const filename = filenameMatch?.[1] || `compulsecare-report-${new Date().toISOString().split('T')[0]}.txt`;
+      
+      // Download file
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Export successful",
+        description: "Your report has been downloaded",
+      });
+    } catch (error) {
+      console.error("Export error:", error);
+      toast({
+        title: "Export failed",
+        description: "Failed to generate report. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (!user) {
@@ -181,10 +221,21 @@ const WeeklySummaryPage = () => {
   if (isLoading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-[#F5F6FA] flex items-center justify-center">
-          <div className="text-center space-y-4">
-            <Loader2 className="w-12 h-12 animate-spin text-[#2563EB] mx-auto" />
-            <p className="text-gray-600">Generating your summary...</p>
+        <div className="min-h-screen bg-[#F5F6FA]">
+          <header className="sticky top-0 bg-white border-b border-gray-200 shadow-sm z-10">
+            <div className="container mx-auto px-4 py-4 max-w-6xl">
+              <div className="flex items-center justify-between">
+                <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+                <div className="text-xs text-muted-foreground animate-pulse">
+                  Analyzing patterns...
+                </div>
+              </div>
+            </div>
+          </header>
+          <div className="container mx-auto px-4 py-8 max-w-6xl">
+            <SummarySkeleton />
           </div>
         </div>
       </ProtectedRoute>
@@ -255,16 +306,40 @@ const WeeklySummaryPage = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-6xl space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-medium text-foreground">
-            Weekly Summary
-          </h2>
-          <Button variant="outline" size="sm" className="border-border text-muted-foreground">
-            <Calendar className="w-4 h-4 mr-2" />
-            Last 7 days
-          </Button>
+      <main className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
+        {/* Header with Quick Stats */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-medium text-foreground">
+              Weekly Summary
+            </h2>
+            <Button variant="outline" size="sm" className="border-border text-muted-foreground">
+              <Calendar className="w-4 h-4 mr-2" />
+              Last 7 days
+            </Button>
+          </div>
+          
+          {/* Quick Stats Row */}
+          {summaryData && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Card className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                <div className="text-2xl font-bold text-blue-900">{summaryData.totalCompulsions}</div>
+                <div className="text-xs text-blue-600">Total logs</div>
+              </Card>
+              <Card className="p-4 bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                <div className="text-2xl font-bold text-green-900">{summaryData.checkInsCount || 0}</div>
+                <div className="text-xs text-green-600">Check-ins</div>
+              </Card>
+              <Card className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                <div className="text-2xl font-bold text-purple-900">{summaryData.avgTimeSpent}m</div>
+                <div className="text-xs text-purple-600">Avg time</div>
+              </Card>
+              <Card className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+                <div className="text-2xl font-bold text-orange-900">{summaryData.panicEpisodesCount || 0}</div>
+                <div className="text-xs text-orange-600">Pause moments</div>
+              </Card>
+            </div>
+          )}
         </div>
 
         {/* 1. AI WEEKLY INSIGHTS - PRIMARY FOCUS */}
@@ -277,17 +352,6 @@ const WeeklySummaryPage = () => {
           </div>
           
           <div className="space-y-6">
-            {/* Patterns Noticed This Week */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-primary text-lg">◆</span>
-                <h4 className="text-base font-medium text-foreground">Patterns noticed this week</h4>
-              </div>
-              <p className="text-base text-foreground leading-relaxed pl-7">
-                {summaryData.insights?.[0] || "Your compulsions decreased on days when you used the pause button more frequently. The breathing exercises seem to create a buffer between the urge and the action."}
-              </p>
-            </div>
-
             {/* What Helped */}
             <div>
               <div className="flex items-center gap-2 mb-3">
@@ -299,16 +363,36 @@ const WeeklySummaryPage = () => {
               </p>
             </div>
 
-            {/* One Gentle Suggestion */}
-            <div className="pt-4 border-t border-border">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-muted-foreground text-lg">→</span>
-                <h4 className="text-base font-medium text-foreground">One gentle suggestion for next week</h4>
+            {/* All Insights */}
+            {summaryData.insights && summaryData.insights.length > 0 && (
+              <div className="space-y-4">
+                {summaryData.insights.map((insight, index) => (
+                  <div key={index} className={index > 0 ? "pt-4 border-t border-border/50" : ""}>
+                    <div className="flex items-start gap-3 mb-2">
+                      <span className="text-primary text-lg shrink-0">
+                        {index === 0 ? "◆" : index === summaryData.insights!.length - 1 ? "→" : "•"}
+                      </span>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium text-foreground mb-2">
+                          {index === 0 
+                            ? "Key pattern this week" 
+                            : index === summaryData.insights!.length - 1 
+                            ? "Suggestion for next week" 
+                            : `Insight ${index + 1}`}
+                        </h4>
+                        <p className="text-sm text-foreground/90 leading-relaxed">
+                          {insight}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <p className="text-base text-foreground leading-relaxed pl-7 mb-4">
-                {summaryData.insights?.[1] || "Try using the pause button at the first sign of a trigger, before the compulsion feels urgent. Early intervention seems to work best for you."}
-              </p>
-              <div className="flex flex-wrap gap-2 pl-7">
+            )}
+
+            {/* Action Buttons */}
+            <div className="pt-4 border-t border-border">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   onClick={() => router.push("/journal")}
                   variant="outline"
@@ -379,7 +463,19 @@ const WeeklySummaryPage = () => {
                   {uploadedDocuments.map((doc: any) => (
                     <div key={doc._id || doc.fileName} className="flex items-center justify-between p-2 bg-white rounded border border-indigo-100">
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-800">{doc.fileName}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-gray-800">{doc.fileName}</p>
+                          {doc.fileUrl && (
+                            <Button
+                              onClick={() => window.open(doc.fileUrl, '_blank')}
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs h-6 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            >
+                              👁️ View
+                            </Button>
+                          )}
+                        </div>
                         <p className="text-xs text-gray-500">
                           {new Date(doc.uploadDate).toLocaleDateString()}
                         </p>
@@ -387,7 +483,7 @@ const WeeklySummaryPage = () => {
                       <div className="flex gap-2">
                         {doc.ocrText && (
                           <Button
-                            onClick={() => setSelectedDocOCR(doc.ocrText)}
+                            onClick={() => setSelectedDoc({ fileName: doc.fileName, ocrText: doc.ocrText, uploadDate: doc.uploadDate })}
                             variant="ghost"
                             size="sm"
                             className="text-xs"
@@ -412,16 +508,77 @@ const WeeklySummaryPage = () => {
             )}
 
             {/* OCR Text Modal */}
-            {selectedDocOCR && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedDocOCR(null)}>
-                <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold">Extracted Text (OCR)</h3>
-                    <Button onClick={() => setSelectedDocOCR(null)} variant="ghost" size="sm">✕</Button>
+            {selectedDoc && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedDoc(null)}>
+                <div className="bg-white rounded-lg p-6 max-w-3xl w-full max-h-[85vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b">
+                    <div>
+                      <h3 className="font-semibold text-lg">Extracted Text (OCR)</h3>
+                      <p className="text-xs text-gray-500 mt-1">{selectedDoc.fileName}</p>
+                    </div>
+                    <Button onClick={() => setSelectedDoc(null)} variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">✕</Button>
                   </div>
-                  <pre className="text-xs bg-gray-50 p-4 rounded whitespace-pre-wrap font-mono">
-                    {selectedDocOCR}
+                  <pre className="text-sm bg-gray-50 p-5 rounded-lg whitespace-pre-wrap font-mono leading-relaxed border border-gray-200">
+                    {selectedDoc.ocrText}
                   </pre>
+                  <div className="flex gap-3 mt-5 pt-4 border-t">
+                    <Button
+                      onClick={() => {
+                        const { jsPDF } = require('jspdf');
+                        const doc = new jsPDF();
+                        
+                        // Add title
+                        doc.setFontSize(16);
+                        doc.setFont(undefined, 'bold');
+                        doc.text('OCR Document Extract', 20, 20);
+                        
+                        // Add metadata
+                        doc.setFontSize(10);
+                        doc.setFont(undefined, 'normal');
+                        doc.setTextColor(100);
+                        doc.text(`File: ${selectedDoc.fileName}`, 20, 30);
+                        doc.text(`Extracted: ${new Date(selectedDoc.uploadDate).toLocaleDateString()}`, 20, 36);
+                        doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 20, 42);
+                        
+                        // Add divider
+                        doc.setDrawColor(200);
+                        doc.line(20, 48, 190, 48);
+                        
+                        // Add OCR text with proper wrapping
+                        doc.setFontSize(11);
+                        doc.setTextColor(0);
+                        const splitText = doc.splitTextToSize(selectedDoc.ocrText, 170);
+                        doc.text(splitText, 20, 56);
+                        
+                        // Save PDF
+                        const fileName = selectedDoc.fileName.replace(/\.[^/.]+$/, '') + '_OCR.pdf';
+                        doc.save(fileName);
+                        
+                        toast({
+                          title: "PDF generated",
+                          description: "OCR text exported as PDF",
+                        });
+                      }}
+                      variant="default"
+                      size="sm"
+                      className="bg-primary"
+                    >
+                      📄 Export as PDF
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        navigator.clipboard.writeText(selectedDoc.ocrText);
+                        toast({
+                          title: "Copied to clipboard",
+                          description: "OCR text copied successfully",
+                        });
+                      }}
+                      variant="outline"
+                      size="sm"
+                    >
+                      📋 Copy Text
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
