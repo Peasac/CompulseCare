@@ -21,7 +21,7 @@ export async function uploadDocumentToSupabase(file: File, userId: string): Prom
   const fileName = `${userId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
   
   const { data, error } = await supabase.storage
-    .from('documents')
+    .from('OCR Docs')
     .upload(fileName, file, {
       cacheControl: '3600',
       upsert: false
@@ -34,7 +34,7 @@ export async function uploadDocumentToSupabase(file: File, userId: string): Prom
 
   // Get public URL
   const { data: { publicUrl } } = supabase.storage
-    .from('documents')
+    .from('OCR Docs')
     .getPublicUrl(data.path);
 
   return publicUrl;
@@ -48,11 +48,11 @@ export async function deleteDocumentFromSupabase(fileUrl: string): Promise<void>
   try {
     // Extract path from URL
     const url = new URL(fileUrl);
-    const path = url.pathname.split('/documents/')[1];
+    const path = url.pathname.split('/OCR%20Docs/')[1];
     
     if (path) {
       const { error } = await supabase.storage
-        .from('documents')
+        .from('OCR Docs')
         .remove([path]);
       
       if (error) {

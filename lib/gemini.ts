@@ -12,9 +12,9 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
 // Model fallback chain: Best quality first → alternatives → hardcoded fallback
 const MODEL_CHAIN = [
-  "gemini-2.5-flash",      // Best quality (5 RPM)
-  "gemini-2.5-flash-lite", // Good quality, higher quota (10 RPM)
-  "gemini-3-flash",        // Backup (5 RPM)
+  "gemini-2.0-flash-exp",      // Latest experimental (15 RPM, free tier)
+  "gemini-1.5-flash",          // Stable, reliable (15 RPM, free tier)
+  "gemini-1.5-flash-8b",       // Lightweight, fast (15 RPM, free tier)
 ];
 
 const BASE_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
@@ -30,7 +30,7 @@ const FALLBACK_RESPONSES = {
   documentAnalysis: "Your documents have been uploaded and stored securely. Try generating insights again later.",
   documentSummary: "Document text extracted and stored for reference.",
   checkInReflection: "Check-in data recorded for longitudinal tracking.",
-  insightExplanation: (category: string, confidence: number) => 
+  insightExplanation: (category: string, confidence: number) =>
     `Pattern detected in ${category} with ${Math.round(confidence * 100)}% confidence.`,
   dailyTargets: [
     { title: "Track 3 compulsions today", description: "Log at least 3 compulsions to build awareness", goal: 3 },
@@ -55,7 +55,7 @@ async function callGemini(prompt: string, modelIndex: number = 0): Promise<strin
 
   const model = MODEL_CHAIN[modelIndex];
   const endpoint = `${BASE_ENDPOINT}/${model}:generateContent`;
-  
+
   return withRetry(async () => {
     try {
       const response = await fetch(`${endpoint}?key=${GEMINI_API_KEY}`, {
@@ -82,11 +82,11 @@ async function callGemini(prompt: string, modelIndex: number = 0): Promise<strin
 
       const data = await response.json();
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-      
+
       if (modelIndex > 0) {
         console.log(`✓ Succeeded with fallback model: ${model}`);
       }
-      
+
       return text;
     } catch (error) {
       // If this isn't the last model, try the next one
@@ -121,7 +121,7 @@ Rules: Max 2 sentences. Calm, validating. No advice, questions, exclamations, "s
 Provide ONLY message text.`;
 
     const text = await rateLimitedCall(() => callGemini(prompt));
-    
+
     // Clean up any formatting
     const cleanedText = text
       .replace(/["\{\}]/g, '')
@@ -159,7 +159,7 @@ Rules: Max 1-2 sentences. Reflect and normalize. Calm tone. No advice, questions
 Provide ONLY reflection text.`;
 
     const text = await rateLimitedCall(() => callGemini(prompt));
-    
+
     // Clean up any formatting
     const cleanedText = text
       .replace(/["\{\}]/g, '')
@@ -318,18 +318,18 @@ Rules: 1 sentence, max 15 words, tentative tone ("seems", "might", "appears"), o
 Provide ONLY sentence.`;
 
     const text = await rateLimitedCall(() => callGemini(prompt));
-    
+
     // Clean and truncate to 15 words max
     const cleaned = text
       .replace(/["\{\}]/g, '')
       .replace(/^(snapshot|observation):\s*/i, '')
       .trim();
-    
+
     const words = cleaned.split(/\s+/);
-    const result = words.length > 15 
+    const result = words.length > 15
       ? words.slice(0, 15).join(' ') + '.'
       : cleaned || "Fewer compulsions on days with more pauses.";
-    
+
     setCache(cacheKey, result);
     return result;
   } catch (error) {
@@ -433,10 +433,10 @@ Provide ONLY the sentence.`;
 
     const text = await rateLimitedCall(() => callGemini(prompt));
     const cleaned = text.trim().replace(/^["']|["']$/g, '');
-    
+
     // Enforce max 20 words
     const words = cleaned.split(/\s+/);
-    const result = words.length > 20 
+    const result = words.length > 20
       ? words.slice(0, 20).join(' ') + '.'
       : cleaned;
 
@@ -480,9 +480,9 @@ export async function generateCheckInReflection(checkIns: any[]): Promise<string
     // Calculate trend data
     const recent = checkIns.slice(0, Math.min(5, checkIns.length));
     const older = checkIns.slice(Math.min(5, checkIns.length));
-    
+
     const recentAvg = recent.reduce((sum, c) => sum + c.totalScore, 0) / recent.length;
-    const olderAvg = older.length > 0 
+    const olderAvg = older.length > 0
       ? older.reduce((sum, c) => sum + c.totalScore, 0) / older.length
       : recentAvg;
 
@@ -511,9 +511,9 @@ Provide ONLY the sentence.`;
 
     const text = await rateLimitedCall(() => callGemini(prompt));
     const cleaned = text.trim().replace(/^["']|["']$/g, '');
-    
+
     const words = cleaned.split(/\s+/);
-    return words.length > 25 
+    return words.length > 25
       ? words.slice(0, 25).join(' ') + '.'
       : cleaned;
 
@@ -551,7 +551,7 @@ Provide ONLY the summary.`;
 
     const text = await rateLimitedCall(() => callGemini(prompt));
     const cleaned = text.trim().replace(/^["']|["']$/g, '');
-    
+
     setCache(cacheKey, cleaned);
     return cleaned;
 
@@ -608,7 +608,7 @@ Provide ONLY the analysis.`;
 
     const text = await rateLimitedCall(() => callGemini(prompt));
     const cleaned = text.trim();
-    
+
     // Cache for 24 hours
     setCache(cacheKey, cleaned);
     return cleaned;
@@ -635,7 +635,7 @@ export async function generateTargetSuggestions(data: {
 }[]> {
   try {
     const { type, count, recentEntries = [], existingTargets = [], completionRate = 0 } = data;
-    
+
     // Build context from user data
     const context = recentEntries.length > 0
       ? `Recent compulsions logged: ${recentEntries.length}
@@ -675,7 +675,7 @@ Examples for weekly:
 - Face 3 triggering situations without ritualizing (goal: 3)`;
 
     const text = await rateLimitedCall(() => callGemini(prompt));
-    
+
     // Extract JSON from response
     const jsonMatch = text.match(/\[[\s\S]*\]/);
     if (jsonMatch) {
@@ -688,20 +688,20 @@ Examples for weekly:
         console.warn("Failed to parse Gemini suggestions:", e);
       }
     }
-    
+
     // Fallback suggestions
-    return type === "daily" 
+    return type === "daily"
       ? [
-          { title: "Track 3 compulsions today", description: "Log at least 3 compulsions to build awareness", goal: 3 },
-          { title: "Practice breathing exercise", description: "Do 5-minute breathing when urges arise", goal: 1 },
-          { title: "Delay one compulsion", description: "Wait 10 minutes before performing one compulsion", goal: 1 },
-        ].slice(0, count)
+        { title: "Track 3 compulsions today", description: "Log at least 3 compulsions to build awareness", goal: 3 },
+        { title: "Practice breathing exercise", description: "Do 5-minute breathing when urges arise", goal: 1 },
+        { title: "Delay one compulsion", description: "Wait 10 minutes before performing one compulsion", goal: 1 },
+      ].slice(0, count)
       : [
-          { title: "Weekly compulsion tracking", description: "Log at least 15 compulsions this week", goal: 15 },
-          { title: "Weekly mindfulness practice", description: "Complete 5 breathing sessions this week", goal: 5 },
-          { title: "Weekly exposure goal", description: "Face 3 triggering situations without ritualizing", goal: 3 },
-        ].slice(0, count);
-        
+        { title: "Weekly compulsion tracking", description: "Log at least 15 compulsions this week", goal: 15 },
+        { title: "Weekly mindfulness practice", description: "Complete 5 breathing sessions this week", goal: 5 },
+        { title: "Weekly exposure goal", description: "Face 3 triggering situations without ritualizing", goal: 3 },
+      ].slice(0, count);
+
   } catch (error) {
     console.error("⚠️ Gemini API error (using hardcoded fallback):", error);
     return data.type === "daily"

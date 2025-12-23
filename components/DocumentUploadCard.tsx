@@ -7,7 +7,13 @@ import { Upload, FileText, Image as ImageIcon, Loader2 } from "lucide-react";
 import { createWorker } from "tesseract.js";
 import { uploadDocumentToSupabase } from "@/lib/supabase";
 
-export default function DocumentUploadCard({ userId }: { userId: string }) {
+export default function DocumentUploadCard({
+  userId,
+  onUploadSuccess,
+}: {
+  userId: string;
+  onUploadSuccess?: () => void;
+}) {
   const [file, setFile] = useState<File | null>(null);
   const [fileUrl, setFileUrl] = useState<string>("");
   const [ocrText, setOcrText] = useState("");
@@ -24,7 +30,7 @@ export default function DocumentUploadCard({ userId }: { userId: string }) {
         }
       },
     });
-    
+
     try {
       const imageUrl = URL.createObjectURL(file);
       const result = await worker.recognize(imageUrl);
@@ -39,16 +45,16 @@ export default function DocumentUploadCard({ userId }: { userId: string }) {
     // For PDFs, we'll use a server-side API endpoint since pdf-parse needs Node.js
     const formData = new FormData();
     formData.append("file", file);
-    
+
     const response = await fetch("/api/pdf-extract", {
       method: "POST",
       body: formData,
     });
-    
+
     if (!response.ok) {
       throw new Error("Failed to extract text from PDF");
     }
-    
+
     const data = await response.json();
     return data.text;
   };
@@ -61,11 +67,11 @@ export default function DocumentUploadCard({ userId }: { userId: string }) {
       setOcrText("");
       setFileUrl("");
       setOcrProgress(0);
-      
+
       // Auto-extract text and upload to Supabase
       setLoading(true);
       setMessage("Uploading document...");
-      
+
       try {
         // Upload to Supabase first
         const uploadedUrl = await uploadDocumentToSupabase(selectedFile, userId);
@@ -77,10 +83,10 @@ export default function DocumentUploadCard({ userId }: { userId: string }) {
         setLoading(false);
         return;
       }
-      
+
       try {
         let extractedText = "";
-        
+
         if (selectedFile.type === "application/pdf") {
           setMessage("Extracting text from PDF...");
           extractedText = await extractTextFromPDF(selectedFile);
@@ -92,7 +98,7 @@ export default function DocumentUploadCard({ userId }: { userId: string }) {
           setLoading(false);
           return;
         }
-        
+
         setOcrText(extractedText);
         setMessage(`Successfully extracted ${extractedText.length} characters. Review and edit if needed.`);
       } catch (error) {
@@ -119,11 +125,11 @@ export default function DocumentUploadCard({ userId }: { userId: string }) {
       const headers: HeadersInit = {
         "Content-Type": "application/json",
       };
-      
+
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
-      
+
       const fileType = file.type.includes("pdf") ? "pdf" : "image";
 
       const res = await fetch("/api/documents", {
@@ -147,6 +153,11 @@ export default function DocumentUploadCard({ userId }: { userId: string }) {
         // Reset file input
         const fileInput = document.getElementById("document-upload") as HTMLInputElement;
         if (fileInput) fileInput.value = "";
+
+        // Notify parent component to refresh
+        if (onUploadSuccess) {
+          onUploadSuccess();
+        }
       } else {
         const data = await res.json();
         setMessage(data.error || "Failed to upload document");
@@ -240,9 +251,8 @@ export default function DocumentUploadCard({ userId }: { userId: string }) {
 
         {message && (
           <div
-            className={`text-sm ${
-              message.includes("success") ? "text-green-600" : message.includes("not yet") ? "text-blue-600" : "text-red-600"
-            }`}
+            className={`text-sm ${message.includes("success") ? "text-green-600" : message.includes("not yet") ? "text-blue-600" : "text-red-600"
+              }`}
           >
             {message}
           </div>
