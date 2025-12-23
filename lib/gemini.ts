@@ -10,14 +10,28 @@ import type { InsightData } from './behavioral-insights';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
-// Model fallback chain: Best quality first → alternatives → hardcoded fallback
+// Model fallback chain: COMPREHENSIVE list of free tier models for maximum redundancy
+// Request capacity: ~100+ RPM total across all models
 const MODEL_CHAIN = [
-  "gemini-2.0-flash-exp",      // Latest experimental (15 RPM, free tier)
-  "gemini-1.5-flash",          // Stable, reliable (15 RPM, free tier)
-  "gemini-1.5-flash-8b",       // Lightweight, fast (15 RPM, free tier)
+  // 2.5 Series (Newest)
+  "models/gemini-2.5-flash",
+  "models/gemini-2.5-flash-lite",
+  "models/gemini-2.5-pro",
+
+  // 2.0 Series
+  "models/gemini-2.0-flash",
+  "models/gemini-2.0-flash-lite-001",
+
+  // 1.5 Series (Stable)
+  "models/gemini-1.5-flash",
+  "models/gemini-1.5-flash-8b",
+  "models/gemini-1.5-pro",
+
+  // Legacy
+  "models/gemini-pro"
 ];
 
-const BASE_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
+const BASE_ENDPOINT = "https://generativelanguage.googleapis.com/v1";
 
 // Hardcoded fallback responses when all models are unavailable
 const FALLBACK_RESPONSES = {
