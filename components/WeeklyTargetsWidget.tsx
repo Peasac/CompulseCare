@@ -13,6 +13,7 @@ interface WeeklyTarget {
   type: "daily" | "weekly" | "exposure" | "reduction" | "mindfulness";
   description: string;
   completed: boolean;
+  pinned?: boolean;
 }
 
 export default function WeeklyTargetsWidget() {
@@ -36,7 +37,7 @@ export default function WeeklyTargetsWidget() {
           const data = await response.json();
           // Only show pinned weekly targets
           const weeklyTargets = (data.targets || [])
-            .filter((t: WeeklyTarget) => t.type === "weekly" && (t as any).pinned)
+            .filter((t: WeeklyTarget) => t.type === "weekly" && t.pinned)
             .slice(0, 3);
           setTargets(weeklyTargets);
         }
@@ -127,9 +128,9 @@ export default function WeeklyTargetsWidget() {
         </div>
       ) : (
         <>
-          {/* Targets List - Max 2 weekly */}
+          {/* Targets List - Max 3 weekly */}
           <div className="space-y-3">
-            {targets.slice(0, 2).map((target) => (
+            {targets.slice(0, 3).map((target) => (
               <div
                 key={target._id}
                 className="p-3 rounded-md border border-border bg-card hover:bg-muted/30 transition-calm"

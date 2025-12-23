@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import SummaryCard from "@/components/SummaryCard";
 import DocumentUploadCard from "@/components/DocumentUploadCard";
@@ -46,13 +47,20 @@ interface WeeklySummaryData {
 const WeeklySummaryPage = () => {
   const router = useRouter();
   const { user, token } = useAuth();
+  const { toast } = useToast();
   const [summaryData, setSummaryData] = useState<WeeklySummaryData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [documentAnalysis, setDocumentAnalysis] = useState<string | null>(null);
   const [loadingDocAnalysis, setLoadingDocAnalysis] = useState(false);
+  const [uploadedDocuments, setUploadedDocuments] = useState<any[]>([]);
+  const [selectedDocOCR, setSelectedDocOCR] = useState<string | null>(null);
+  const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
+
+  console.log('[Summary] Page loaded, user:', user?.id, 'isLoading:', isLoading);
 
   useEffect(() => {
+    console.log('[Summary] useEffect triggered, user:', user?.id);
     if (user) {
       fetchWeeklySummary();
       fetchDocumentAnalysis();
@@ -107,6 +115,7 @@ const WeeklySummaryPage = () => {
       if (response.ok) {
         const data = await response.json();
         setDocumentAnalysis(data.analysis);
+        setUploadedDocuments(data.documents || []);
       }
     } catch (err) {
       console.error("Document analysis error:", err);
@@ -116,9 +125,53 @@ const WeeklySummaryPage = () => {
     }
   };
 
+  const handleDeleteDocument = async (docId: string) => {
+    if (!confirm("Are you sure you want to delete this document?")) return;
+    
+    setDeletingDocId(docId);
+    try {
+      const headers: HeadersInit = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`/api/documents/${docId}`, {
+        method: "DELETE",
+        headers,
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "Document deleted",
+          description: "The document has been removed",
+        });
+        // Refresh documents list
+        await fetchDocumentAnalysis();
+      } else {
+        toast({
+          title: "Delete failed",
+          description: "Failed to delete document",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error("Delete document error:", err);
+      toast({
+        title: "Error",
+        description: "Error deleting document",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingDocId(null);
+    }
+  };
+
   const handleExport = () => {
     // TODO: Implement PDF or CSV export
-    alert("Export feature coming soon!");
+    toast({
+      title: "Coming soon",
+      description: "Export feature is in development",
+    });
   };
 
   if (!user) {
@@ -315,6 +368,63 @@ const WeeklySummaryPage = () => {
             >
               🔄 Refresh Analysis
             </Button>
+
+            {/* Uploaded Documents List */}
+            {uploadedDocuments.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-indigo-200">
+                <h4 className="text-xs font-medium text-indigo-900 mb-2">
+                  Uploaded Documents ({uploadedDocuments.length})
+                </h4>
+                <div className="space-y-2">
+                  {uploadedDocuments.map((doc: any) => (
+                    <div key={doc._id || doc.fileName} className="flex items-center justify-between p-2 bg-white rounded border border-indigo-100">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-800">{doc.fileName}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(doc.uploadDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        {doc.ocrText && (
+                          <Button
+                            onClick={() => setSelectedDocOCR(doc.ocrText)}
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs"
+                          >
+                            View OCR
+                          </Button>
+                        )}
+                        <Button
+                          onClick={() => handleDeleteDocument(doc._id)}
+                          variant="ghost"
+                          size="sm"
+                          disabled={deletingDocId === doc._id}
+                          className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          {deletingDocId === doc._id ? "..." : "Delete"}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* OCR Text Modal */}
+            {selectedDocOCR && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedDocOCR(null)}>
+                <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold">Extracted Text (OCR)</h3>
+                    <Button onClick={() => setSelectedDocOCR(null)} variant="ghost" size="sm">✕</Button>
+                  </div>
+                  <pre className="text-xs bg-gray-50 p-4 rounded whitespace-pre-wrap font-mono">
+                    {selectedDocOCR}
+                  </pre>
+                </div>
+              </div>
+            )}
           </Card>
         )}
 

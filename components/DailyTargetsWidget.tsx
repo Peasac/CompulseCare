@@ -13,6 +13,7 @@ interface DailyTarget {
   type: "daily" | "weekly" | "exposure" | "reduction" | "mindfulness";
   description: string;
   completed: boolean;
+  pinned?: boolean;
 }
 
 export default function DailyTargetsWidget() {
@@ -34,7 +35,10 @@ export default function DailyTargetsWidget() {
         const response = await fetch(`/api/targets?userId=${user.id}`, { headers });
         if (response.ok) {
           const data = await response.json();
-          setTargets(data.targets || []);
+          const allTargets = data.targets || [];
+          console.log(`[DailyTargetsWidget] Total targets:`, allTargets.length);
+          console.log(`[DailyTargetsWidget] Daily pinned:`, allTargets.filter((t: any) => t.type === "daily" && t.pinned).length);
+          setTargets(allTargets);
         }
       } catch (error) {
         console.error("Failed to fetch targets:", error);
@@ -101,7 +105,7 @@ export default function DailyTargetsWidget() {
     }
   };
 
-  const dailyTargets = targets.filter(t => t.type === "daily" && (t as any).pinned).slice(0, 3);
+  const dailyTargets = targets.filter(t => t.type === "daily" && t.pinned).slice(0, 3);
 
   return (
     <Card className="p-6 bg-card shadow-soft border-border">

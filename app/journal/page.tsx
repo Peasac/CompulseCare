@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import JournalCard from "@/components/JournalCard";
 import { ArrowLeft, Send, Loader2 } from "lucide-react";
@@ -40,6 +42,8 @@ const JournalPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const fromPanic = searchParams.get("from") === "panic";
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   const [selectedTriggers, setSelectedTriggers] = useState<string[]>([]);
   const [note, setNote] = useState("");
@@ -64,7 +68,7 @@ const JournalPage = () => {
 
   const fetchRecentEntries = async () => {
     try {
-      const response = await fetch("/api/journal?userId=user123&limit=10");
+      const response = await fetch(`/api/journal?userId=${user.id}&limit=10`);
       if (response.ok) {
         const data = await response.json();
         setRecentEntries(data.entries || []);
@@ -86,7 +90,11 @@ const JournalPage = () => {
 
   const handleSubmit = async () => {
     if (selectedTriggers.length === 0) {
-      alert("Please select at least one trigger");
+      toast({
+        title: "Trigger required",
+        description: "Please select at least one trigger",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -97,7 +105,7 @@ const JournalPage = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: "user123", // TODO: Get from auth context
+          userId: user.id, // TODO: Get from auth context
           triggers: selectedTriggers,
           note: note.trim(),
           timeSpent,
@@ -117,13 +125,20 @@ const JournalPage = () => {
         setRecentEntries((prev) => [newEntry, ...prev]);
         
         // Success feedback
-        alert("Journal entry saved!");
+        toast({
+          title: "Entry saved",
+          description: "Your journal entry has been recorded",
+        });
       } else {
         throw new Error("Failed to save entry");
       }
     } catch (error) {
       console.error("Journal submission error:", error);
-      alert("Failed to save entry. Please try again.");
+      toast({
+        title: "Save failed",
+        description: "Failed to save entry. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }

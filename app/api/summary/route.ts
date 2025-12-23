@@ -7,6 +7,8 @@ import JournalEntry from "@/lib/models/JournalEntry";
 import Mood from "@/lib/models/Mood";
 import Target from "@/lib/models/Target";
 import PanicEvent from "@/lib/models/PanicEvent";
+import CheckIn from "@/lib/models/CheckIn";
+import ImportedDocument from "@/lib/models/ImportedDocument";
 
 /**
  * GET /api/summary?userId=X
@@ -74,10 +76,12 @@ export async function GET(request: NextRequest) {
     let moods: any[] = [];
     let targets: any[] = [];
     let panicEvents: any[] = [];
+    let checkIns: any[] = [];
+    let documents: any[] = [];
 
     // If MongoDB connected, fetch real data
     if (conn) {
-      [entries, moods, targets, panicEvents] = await Promise.all([
+      [entries, moods, targets, panicEvents, checkIns, documents] = await Promise.all([
         JournalEntry.find({
           userId,
           createdAt: { $gte: sevenDaysAgo },
@@ -93,10 +97,22 @@ export async function GET(request: NextRequest) {
           userId,
           createdAt: { $gte: sevenDaysAgo },
         } as any).lean(),
+        CheckIn.find({
+          userId,
+          createdAt: { $gte: sevenDaysAgo },
+        } as any)
+          .sort({ createdAt: -1 })
+          .lean(),
+        ImportedDocument.find({ userId } as any)
+          .sort({ uploadDate: -1 })
+          .limit(10)
+          .lean(),
       ]);
     } else {
       console.warn('[Summary API] MongoDB not connected - using empty data');
     }
+
+    console.log(`[Summary API] Fetched data: entries=${entries.length}, checkIns=${checkIns.length}, documents=${documents.length}`);
 
     // Aggregate data
     const totalCompulsions = entries.length;
@@ -238,6 +254,16 @@ Keep tone positive, validating, and hopeful. Focus on patterns and small wins.`;
       journalEntries: entries.length,
       panicEpisodes: panicEvents.length,
       mostCommonTrigger,
+      checkIns: checkIns.map((c: any) => ({
+        mood: c.mood,
+        thought: c.thought,
+        date: c.createdAt,
+      })),
+      documents: documents.map((d: any) => ({
+        fileName: d.fileName,
+        summary: d.summary,
+        ocrText: d.ocrText?.substring(0, 500), // First 500 chars
+      })),
     });
 
     textSummary = reflection.whatHelped;

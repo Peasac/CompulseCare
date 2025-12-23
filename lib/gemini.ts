@@ -9,31 +9,93 @@ import { getCached, setCache } from './gemini-cache';
 import type { InsightData } from './behavioral-insights';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
-const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+
+// Model fallback chain: Best quality first → alternatives → hardcoded fallback
+const MODEL_CHAIN = [
+  "gemini-2.5-flash",      // Best quality (5 RPM)
+  "gemini-2.5-flash-lite", // Good quality, higher quota (10 RPM)
+  "gemini-3-flash",        // Backup (5 RPM)
+];
+
+const BASE_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
+
+// Hardcoded fallback responses when all models are unavailable
+const FALLBACK_RESPONSES = {
+  panic: "You handled that moment with care. It's okay to take things slowly right now.",
+  reflection: "Thank you for sharing. That took courage.",
+  weeklyPatterns: "Your compulsions decreased on days when you used the pause button more frequently. The breathing exercises seem to create a buffer between the urge and the action.",
+  weeklyHelped: "Your journal entries show you're recognizing triggers earlier in the process. This awareness gives you more time to respond intentionally.",
+  weeklySuggestion: "Try using the pause button at the first sign of a trigger, before the compulsion feels urgent.",
+  dashboardSnapshot: "Fewer compulsions on days with more pauses.",
+  documentAnalysis: "Your documents have been uploaded and stored securely. Try generating insights again later.",
+  documentSummary: "Document text extracted and stored for reference.",
+  checkInReflection: "Check-in data recorded for longitudinal tracking.",
+  insightExplanation: (category: string, confidence: number) => 
+    `Pattern detected in ${category} with ${Math.round(confidence * 100)}% confidence.`,
+  dailyTargets: [
+    { title: "Track 3 compulsions today", description: "Log at least 3 compulsions to build awareness", goal: 3 },
+    { title: "Practice breathing exercise", description: "Do 5-minute breathing when urges arise", goal: 1 },
+    { title: "Delay one compulsion", description: "Wait 10 minutes before performing one compulsion", goal: 1 },
+  ],
+  weeklyTargets: [
+    { title: "Weekly compulsion tracking", description: "Log at least 15 compulsions this week", goal: 15 },
+    { title: "Weekly mindfulness practice", description: "Complete 5 breathing sessions this week", goal: 5 },
+    { title: "Weekly exposure goal", description: "Face 3 triggering situations without ritualizing", goal: 3 },
+  ],
+};
 
 /**
- * Make a direct REST API call to Gemini with retry logic
+ * Make a direct REST API call to Gemini with full model chain fallback
  */
-async function callGemini(prompt: string): Promise<string> {
+async function callGemini(prompt: string, modelIndex: number = 0): Promise<string> {
+  // If we've exhausted all models, throw to trigger hardcoded fallback
+  if (modelIndex >= MODEL_CHAIN.length) {
+    throw new Error("All Gemini models exhausted");
+  }
+
+  const model = MODEL_CHAIN[modelIndex];
+  const endpoint = `${BASE_ENDPOINT}/${model}:generateContent`;
+  
   return withRetry(async () => {
-    const response = await fetch(`${GEMINI_ENDPOINT}?key=${GEMINI_API_KEY}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-      }),
-    });
+    try {
+      const response = await fetch(`${endpoint}?key=${GEMINI_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+        }),
+      });
 
-    if (response.status === 429) {
-      throw new Error(`Gemini API rate limit: 429`);
+      if (response.status === 429) {
+        console.warn(`⚠️ Rate limit hit for ${model}`);
+        // Try next model in chain
+        if (modelIndex < MODEL_CHAIN.length - 1) {
+          console.log(`🔄 Attempting fallback to ${MODEL_CHAIN[modelIndex + 1]}`);
+          return callGemini(prompt, modelIndex + 1);
+        }
+        throw new Error(`All Gemini models rate limited`);
+      }
+
+      if (!response.ok) {
+        throw new Error(`Gemini API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      
+      if (modelIndex > 0) {
+        console.log(`✓ Succeeded with fallback model: ${model}`);
+      }
+      
+      return text;
+    } catch (error) {
+      // If this isn't the last model, try the next one
+      if (modelIndex < MODEL_CHAIN.length - 1 && (error as Error).message.includes('429')) {
+        console.log(`🔄 Attempting fallback to ${MODEL_CHAIN[modelIndex + 1]}`);
+        return callGemini(prompt, modelIndex + 1);
+      }
+      throw error;
     }
-
-    if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
   });
 }
 
@@ -67,16 +129,16 @@ Provide ONLY message text.`;
       .trim();
 
     const result = {
-      message: cleanedText || "You handled that moment with care. It's okay to take things slowly right now.",
+      message: cleanedText || FALLBACK_RESPONSES.panic,
     };
 
     // Cache result
     setCache(cacheKey, result);
     return result;
   } catch (error) {
-    console.error("Gemini API error:", error);
+    console.error("⚠️ Gemini API error (using hardcoded fallback):", error);
     return {
-      message: "You handled that moment with care. It's okay to take things slowly right now.",
+      message: FALLBACK_RESPONSES.panic,
     };
   }
 }
@@ -104,10 +166,10 @@ Provide ONLY reflection text.`;
       .replace(/^reflection:\s*/i, '')
       .trim();
 
-    return cleanedText || "That sounds like it was a lot to carry. You're processing it now.";
+    return cleanedText || FALLBACK_RESPONSES.reflection;
   } catch (error) {
-    console.error("Gemini API error:", error);
-    return "Thank you for sharing. That took courage.";
+    console.error("⚠️ Gemini API error (using hardcoded fallback):", error);
+    return FALLBACK_RESPONSES.reflection;
   }
 }
 
@@ -125,6 +187,8 @@ export async function generateWeeklyReflection(summaryData: {
   journalEntries: number;
   panicEpisodes: number;
   mostCommonTrigger: string;
+  checkIns?: Array<{ mood: string; thought: string; date: Date }>;
+  documents?: Array<{ fileName: string; summary?: string; ocrText?: string }>;
 }): Promise<{
   patterns: string;
   whatHelped: string;
@@ -136,6 +200,25 @@ export async function generateWeeklyReflection(summaryData: {
     const cached = getCached<{ patterns: string; whatHelped: string; suggestion: string }>(cacheKey);
     if (cached) return cached;
 
+    // Build context with check-ins and documents
+    let checkInContext = "";
+    if (summaryData.checkIns && summaryData.checkIns.length > 0) {
+      const checkInSummary = summaryData.checkIns
+        .slice(0, 3)
+        .map(c => `${c.mood}: "${c.thought}"`)
+        .join('; ');
+      checkInContext = `\n- Check-ins: ${checkInSummary}`;
+    }
+
+    let documentContext = "";
+    if (summaryData.documents && summaryData.documents.length > 0) {
+      const docSummaries = summaryData.documents
+        .slice(0, 2)
+        .map(d => d.summary || d.fileName)
+        .join('; ');
+      documentContext = `\n- Therapy docs: ${docSummaries}`;
+    }
+
     const prompt = `Weekly insights for compulsion/anxiety management. DETAILED analysis for summary page.
 
 Stats:
@@ -145,12 +228,12 @@ Stats:
 - Targets: ${summaryData.targetCompletion}%
 - Entries: ${summaryData.journalEntries}
 - Pauses: ${summaryData.panicEpisodes}
-- Top Trigger: ${summaryData.mostCommonTrigger}
+- Top Trigger: ${summaryData.mostCommonTrigger}${checkInContext}${documentContext}
 
 Generate 3 parts:
-1. "patterns" - WHY trends happened (2-3 sentences, correlations)
-2. "whatHelped" - What worked and HOW (2-3 sentences)
-3. "suggestion" - One specific actionable suggestion (1-2 sentences)
+1. "patterns" - WHY trends happened (2-3 sentences, correlations). ${documentContext ? 'Compare with therapy documents if relevant.' : ''}
+2. "whatHelped" - What worked and HOW (2-3 sentences). ${checkInContext ? 'Reference check-in thoughts if applicable.' : ''}
+3. "suggestion" - One specific actionable suggestion (1-2 sentences). ${documentContext ? 'Align with therapy goals from documents.' : ''}
 
 JSON format:
 {"patterns": "...", "whatHelped": "...", "suggestion": "..."}`;
@@ -193,11 +276,11 @@ JSON format:
     setCache(cacheKey, result);
     return result;
   } catch (error) {
-    console.error("Gemini API error:", error);
+    console.error("⚠️ Gemini API error (using hardcoded fallback):", error);
     return {
-      patterns: "Your compulsions decreased on days when you used the pause button more frequently. The breathing exercises seem to create a buffer between the urge and the action, giving you time to make a different choice.",
-      whatHelped: "Your journal entries show you're recognizing triggers earlier in the process. This awareness is giving you more time to respond intentionally rather than react automatically.",
-      suggestion: "Try using the pause button at the first sign of a trigger, before the compulsion feels urgent.",
+      patterns: FALLBACK_RESPONSES.weeklyPatterns,
+      whatHelped: FALLBACK_RESPONSES.weeklyHelped,
+      suggestion: FALLBACK_RESPONSES.weeklySuggestion,
     };
   }
 }
@@ -250,8 +333,8 @@ Provide ONLY sentence.`;
     setCache(cacheKey, result);
     return result;
   } catch (error) {
-    console.error("Gemini API error:", error);
-    return "Fewer compulsions on days with more pauses.";
+    console.error("⚠️ Gemini API error (using hardcoded fallback):", error);
+    return FALLBACK_RESPONSES.dashboardSnapshot;
   }
 }
 
@@ -305,7 +388,7 @@ Example format:
       `Target completion at ${summaryData.targetCompletion}% shows real progress!`,
     ];
   } catch (error) {
-    console.error("Gemini API error:", error);
+    console.error("⚠️ Gemini API error (using hardcoded fallback):", error);
     return [
       "You're making progress one day at a time.",
       "Tracking your patterns is a powerful tool for change.",
@@ -360,9 +443,8 @@ Provide ONLY the sentence.`;
     setCache(cacheKey, result);
     return result;
   } catch (error) {
-    console.error("Gemini API error:", error);
-    // Return a generic fallback based on pattern type
-    return `Pattern detected in ${insight.category} with ${Math.round(insight.confidence * 100)}% confidence.`;
+    console.error("⚠️ Gemini API error (using hardcoded fallback):", error);
+    return FALLBACK_RESPONSES.insightExplanation(insight.category, insight.confidence);
   }
 }
 
@@ -436,8 +518,8 @@ Provide ONLY the sentence.`;
       : cleaned;
 
   } catch (error) {
-    console.error("Gemini API error:", error);
-    return "Check-in data recorded for longitudinal tracking.";
+    console.error("⚠️ Gemini API error (using hardcoded fallback):", error);
+    return FALLBACK_RESPONSES.checkInReflection;
   }
 }
 
@@ -474,25 +556,30 @@ Provide ONLY the summary.`;
     return cleaned;
 
   } catch (error) {
-    console.error("Gemini API error:", error);
-    return "Document text extracted and stored for reference.";
+    console.error("⚠️ Gemini API error (using hardcoded fallback):", error);
+    return FALLBACK_RESPONSES.documentSummary;
   }
 }
 
 /**
  * Analyze uploaded documents and extract OCD-related insights
  */
-export async function analyzeDocuments(documents: Array<{ ocrText: string; fileName: string }>): Promise<string> {
+export async function analyzeDocuments(documents: Array<{ ocrText: string; fileName: string; _id?: string }>): Promise<string> {
   try {
     if (documents.length === 0) {
       return "No documents uploaded yet. Upload therapy notes, assessments, or related documents to get AI insights.";
     }
 
-    // Check cache
-    const docHash = documents.map(d => d.fileName).join(',');
-    const cacheKey = `documents:analysis:${docHash}`;
+    // Create cache key from document IDs and content hash
+    const docKey = documents
+      .map(d => `${d._id || d.fileName}:${d.ocrText?.substring(0, 50)}`)
+      .join('|');
+    const cacheKey = `documents:analysis:${docKey.substring(0, 200)}`; // Limit key length
     const cached = getCached<string>(cacheKey);
-    if (cached) return cached;
+    if (cached) {
+      console.log('[Gemini] Returning cached document analysis');
+      return cached;
+    }
 
     // Combine document texts (limit to prevent token overflow)
     const combinedText = documents
@@ -527,8 +614,98 @@ Provide ONLY the analysis.`;
     return cleaned;
 
   } catch (error) {
-    console.error("Document analysis error:", error);
-    return "Your documents have been uploaded and stored securely. Try generating insights again later.";
+    console.error("⚠️ Gemini API error (using hardcoded fallback):", error);
+    return FALLBACK_RESPONSES.documentAnalysis;
   }
 }
 
+/**
+ * Generate personalized target suggestions using Gemini AI
+ */
+export async function generateTargetSuggestions(data: {
+  type: "daily" | "weekly";
+  count: number;
+  recentEntries?: any[];
+  existingTargets?: any[];
+  completionRate?: number;
+}): Promise<{
+  title: string;
+  description: string;
+  goal: number;
+}[]> {
+  try {
+    const { type, count, recentEntries = [], existingTargets = [], completionRate = 0 } = data;
+    
+    // Build context from user data
+    const context = recentEntries.length > 0
+      ? `Recent compulsions logged: ${recentEntries.length}
+Most common triggers: ${recentEntries.slice(0, 5).map((e: any) => e.triggerType || e.trigger).join(', ')}
+Completion rate: ${completionRate.toFixed(0)}%`
+      : "New user - first time setting targets";
+
+    const prompt = `Generate ${count} ${type} OCD recovery targets for someone managing compulsions. 
+
+User Context:
+${context}
+
+Requirements:
+- Each target should be specific, measurable, and achievable
+- Focus on ERP (Exposure and Response Prevention) principles
+- Include mindfulness and tracking goals
+- Goals should have numeric values (1-10 range)
+- Return ONLY a JSON array, no additional text
+
+Format:
+[
+  {
+    "title": "Short action-oriented title",
+    "description": "Clear description of what to do and why",
+    "goal": <number between 1-10>
+  }
+]
+
+Examples for daily:
+- Track compulsions throughout the day (goal: 3)
+- Practice breathing exercises when triggered (goal: 2)
+- Delay one compulsion by 10 minutes (goal: 1)
+
+Examples for weekly:
+- Log 15 compulsions to identify patterns (goal: 15)
+- Complete 5 breathing sessions (goal: 5)
+- Face 3 triggering situations without ritualizing (goal: 3)`;
+
+    const text = await rateLimitedCall(() => callGemini(prompt));
+    
+    // Extract JSON from response
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.slice(0, count);
+        }
+      } catch (e) {
+        console.warn("Failed to parse Gemini suggestions:", e);
+      }
+    }
+    
+    // Fallback suggestions
+    return type === "daily" 
+      ? [
+          { title: "Track 3 compulsions today", description: "Log at least 3 compulsions to build awareness", goal: 3 },
+          { title: "Practice breathing exercise", description: "Do 5-minute breathing when urges arise", goal: 1 },
+          { title: "Delay one compulsion", description: "Wait 10 minutes before performing one compulsion", goal: 1 },
+        ].slice(0, count)
+      : [
+          { title: "Weekly compulsion tracking", description: "Log at least 15 compulsions this week", goal: 15 },
+          { title: "Weekly mindfulness practice", description: "Complete 5 breathing sessions this week", goal: 5 },
+          { title: "Weekly exposure goal", description: "Face 3 triggering situations without ritualizing", goal: 3 },
+        ].slice(0, count);
+        
+  } catch (error) {
+    console.error("⚠️ Gemini API error (using hardcoded fallback):", error);
+    return data.type === "daily"
+      ? FALLBACK_RESPONSES.dailyTargets.slice(0, data.count)
+      : FALLBACK_RESPONSES.weeklyTargets.slice(0, data.count);
+  }
+}

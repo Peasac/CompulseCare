@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import BreathingAnimation from "@/components/BreathingAnimation";
@@ -19,6 +20,7 @@ interface LLMResponse {
  */
 const PanicModePage = () => {
   const router = useRouter();
+  const { user } = useAuth();
   const [stage, setStage] = useState<"breathing" | "support">("breathing");
   const [llmResponse, setLlmResponse] = useState<LLMResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -65,7 +67,7 @@ const PanicModePage = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: "user123", // TODO: Get from auth context
+          userId: user.id, // TODO: Get from auth context
           triggerType: "panic_button",
           context: "User activated panic mode",
         }),
@@ -118,7 +120,7 @@ const PanicModePage = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: "user123",
+          userId: user.id,
           reflection: reflectionText,
         }),
       });

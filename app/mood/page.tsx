@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -38,6 +39,7 @@ const MOOD_OPTIONS = [
 const MoodTrackerPage = () => {
   const router = useRouter();
   const { user, isLoading } = useAuth();
+  const { toast } = useToast();
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [intensity, setIntensity] = useState([5]);
   const [note, setNote] = useState("");
@@ -86,12 +88,20 @@ const MoodTrackerPage = () => {
 
   const handleSubmit = async () => {
     if (!selectedMood) {
-      alert("Please select a mood");
+      toast({
+        title: "Mood required",
+        description: "Please select a mood",
+        variant: "destructive",
+      });
       return;
     }
 
     if (!user) {
-      alert("Please log in to save moods");
+      toast({
+        title: "Authentication required",
+        description: "Please log in to save moods",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -127,13 +137,20 @@ const MoodTrackerPage = () => {
         // Add to history
         setMoodHistory((prev) => [newEntry, ...prev]);
         
-        alert("Mood logged successfully!");
+        toast({
+          title: "Mood logged",
+          description: "Your mood has been recorded",
+        });
       } else {
         throw new Error("Failed to log mood");
       }
     } catch (error) {
       console.error("Mood submission error:", error);
-      alert("Failed to log mood. Please try again.");
+      toast({
+        title: "Failed to save",
+        description: "Failed to log mood. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }

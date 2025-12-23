@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Clock, List } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CompulsionLoggerProps {
   onLogSubmit?: (entry: CompulsionEntry) => void;
@@ -23,6 +24,7 @@ const CATEGORIES = ["Checking", "Cleaning", "Organizing", "Counting", "Other"];
 
 export default function CompulsionLoggerWidget({ onLogSubmit }: CompulsionLoggerProps) {
   const router = useRouter();
+  const { user } = useAuth();
   const [activity, setActivity] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [hours, setHours] = useState("");
@@ -40,8 +42,9 @@ export default function CompulsionLoggerWidget({ onLogSubmit }: CompulsionLogger
 
   async function fetchData() {
     console.log('[CompulsionLogger] 🔄 fetchData() called');
+    if (!user) return;
     try {
-      const response = await fetch("/api/journal?userId=user123&limit=100");
+      const response = await fetch(`/api/journal?userId=${user.id}&limit=100`);
       if (response.ok) {
         const data = await response.json();
         const today = new Date().toDateString();
@@ -74,7 +77,7 @@ export default function CompulsionLoggerWidget({ onLogSubmit }: CompulsionLogger
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: "user123",
+          userId: user.id,
           compulsion: activity,
           triggers: [selectedCategory],
           timeSpent: totalMinutes,

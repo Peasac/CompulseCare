@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +44,7 @@ interface CompulsionLog {
  */
 const LoggerPage = () => {
   const router = useRouter();
+  const { toast } = useToast();
   const [logs, setLogs] = useState<CompulsionLog[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<CompulsionLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -120,7 +122,10 @@ const LoggerPage = () => {
 
   const handleExport = () => {
     // TODO: Implement CSV export
-    alert("Export feature coming soon!");
+    toast({
+      title: "Coming soon",
+      description: "Export feature is in development",
+    });
   };
 
   const getTotalTime = () => {

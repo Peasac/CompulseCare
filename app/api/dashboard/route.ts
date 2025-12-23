@@ -115,6 +115,9 @@ export async function GET(request: NextRequest) {
       } as any).lean(),
     ]);
 
+    console.log(`[Dashboard API] Generated snapshot for user ${userId}`);
+    console.log(`  - Entries: ${entries.length}, Moods: ${moods.length}, Targets: ${targets.length}, Panic: ${panicEvents.length}`);
+
     // Calculate progress metrics
     const totalCompulsions = entries.length;
     const avgAnxiety =

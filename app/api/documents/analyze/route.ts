@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
     // Analyze documents with AI
     const analysis = await analyzeDocuments(
       documents.map((doc: any) => ({
+        _id: doc._id.toString(),
         ocrText: doc.ocrText,
         fileName: doc.fileName,
       }))

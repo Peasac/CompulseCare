@@ -73,6 +73,7 @@ export default function DashboardPage() {
     async function fetchDashboard() {
       try {
         setLoading(true);
+        console.log('[Dashboard] Fetching for userId:', user.id);
         const headers: HeadersInit = {};
         if (token) {
           headers["Authorization"] = `Bearer ${token}`;
@@ -86,6 +87,7 @@ export default function DashboardPage() {
           throw new Error("Failed to fetch dashboard data");
         }
         const data = await response.json();
+        console.log('[Dashboard] Received data:', data);
         setDashboardData(data);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
