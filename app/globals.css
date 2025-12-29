@@ -4,54 +4,68 @@
 
 @layer base {
   :root {
-    /* Backgrounds - calm and neutral - HSL format for Tailwind */
-    --background: 210 17% 98%; /* #F9FAFB - soft gray-50 */
-    --foreground: 222 47% 11%; /* #111827 - gray-900 */
-
-    --card: 0 0% 100%; /* white */
+    --background: 210 40% 98%; /* Soft cool white */
+    --foreground: 222 47% 11%;
+    
+    --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
-
+ 
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
+ 
+    --primary: 210 100% 50%; /* Calm Blue */
+    --primary-foreground: 210 40% 98%;
+ 
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11%;
+ 
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 16% 47%;
+ 
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47% 11%;
+ 
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    /* Primary - calm blue */
-    --primary: 217 91% 60%; /* #3B82F6 - blue-500 */
-    --primary-foreground: 0 0% 100%;
-
-    /* Secondary - very subtle */
-    --secondary: 210 20% 98%; /* #F9FAFB - gray-50 */
-    --secondary-foreground: 215 16% 47%; /* #4B5563 - gray-600 */
-
-    /* Muted - for backgrounds and subtle text */
-    --muted: 214 32% 91%; /* #E5E7EB - gray-200 */
-    --muted-foreground: 220 9% 46%; /* #6B7280 - gray-500 */
-
-    /* Accent - soft green for success/positive */
-    --accent: 160 84% 39%; /* #10B981 - emerald-500 */
-    --accent-foreground: 0 0% 100%;
-
-    /* Destructive - softer red */
-    --destructive: 0 84% 60%; /* #EF4444 - red-500 */
-    --destructive-foreground: 0 0% 100%;
-
-    /* Borders and inputs - very subtle */
-    --border: 214 32% 91%; /* #E5E7EB - gray-200 */
-    --input: 214 32% 91%;
-    --ring: 213 97% 87%; /* #93C5FD - blue-300 */
-
-    /* Panic - soft emotional pink (NOT vibrant) */
-    --panic: 327 73% 97%; /* soft pink */
-    --panic-foreground: 330 81% 35%;
-    --panic-accent: 330 77% 70%;
-
-    /* Success - gentle green */
-    --success: 142 76% 73%; /* #86EFAC - green-300 */
-    --success-foreground: 140 64% 24%;
-
-    --radius: 0.75rem; /* ~12px */
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 210 100% 50%; /* Blue ring */
+ 
+    --radius: 0.75rem;
+  }
+ 
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+ 
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+ 
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+ 
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+ 
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+ 
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+ 
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+ 
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+ 
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
   }
 }
-
+ 
 @layer base {
   * {
     @apply border-border;
@@ -61,99 +75,52 @@
   }
 }
 
-/* Custom utilities for breathing animations */
-@keyframes breathe {
-  0%, 100% {
-    transform: scale(1);
+@layer utilities {
+  .hover-lift {
+    @apply transition-transform duration-300 ease-out hover:-translate-y-1;
   }
-  50% {
-    transform: scale(1.05);
+  
+  .shadow-soft {
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); /* Softer shadow */
   }
-}
-
-@keyframes pulse-glow {
-  0%, 100% {
-    opacity: 0.2;
+  
+  .transition-calm {
+    @apply transition-all duration-300 ease-in-out;
   }
-  50% {
-    opacity: 0.4;
+
+  .text-balance {
+    text-wrap: balance;
   }
-}
-
-@keyframes breatheInOut {
-  0%, 100% { 
-    transform: scale(0.8); 
-    opacity: 0.7;
+  
+  /* Animations */
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
   }
-  50% { 
-    transform: scale(1.1); 
-    opacity: 0.9;
+  
+  @keyframes soft-pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); } 
+    50% { opacity: 0.9; box-shadow: 0 0 0 10px rgba(244, 63, 94, 0); }
   }
-}
 
-@keyframes fadeIn {
-  from { 
-    opacity: 0; 
-    transform: translateY(20px); 
+  @keyframes fade-in-up {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+
+  .animate-breathe {
+    animation: breathe 6s ease-in-out infinite;
   }
-}
 
-.animate-breathe {
-  animation: breathe 4s ease-in-out infinite;
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 3s ease-in-out infinite;
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.5s ease-out;
-}
-
-/* Calm transition utilities */
-.transition-calm {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.6, 1);
-}
-
-.transition-calm-slow {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.6, 1);
-}
-
-.transition-fade {
-  transition: opacity 0.2s ease-in-out;
-}
-
-/* Soft shadows - layered for depth */
-.shadow-soft {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.06);
-}
-
-.shadow-soft-lg {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-}
-
-/* Gentle hover lift */
-.hover-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-/* Respect reduced motion preferences */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  .animate-soft-pulse {
+    animation: soft-pulse 3s infinite;
   }
+
+  .animate-fade-in {
+    animation: fade-in-up 0.8s ease-out forwards;
+  }
+  
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
 }

@@ -31,8 +31,8 @@ const PanicButton = ({ onPanicClick }: PanicButtonProps) => {
           md:w-80 md:h-80 
           lg:w-96 lg:h-96
           rounded-full 
-          bg-[#FFADAD] 
-          hover:bg-[#FF9999]
+          bg-rose-400
+          hover:bg-rose-500
           text-white
           shadow-2xl 
           hover:shadow-3xl
@@ -42,8 +42,7 @@ const PanicButton = ({ onPanicClick }: PanicButtonProps) => {
           flex-col 
           items-center 
           justify-center 
-          gap-3 
-          md:gap-4
+          gap-2 
           border-4
           border-white/20
           group
@@ -53,7 +52,6 @@ const PanicButton = ({ onPanicClick }: PanicButtonProps) => {
           animation: "breathe 4s ease-in-out infinite",
         }}
       >
-        <Heart className="w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 group-hover:scale-110 transition-transform" />
         <span className="text-3xl md:text-4xl lg:text-5xl font-bold uppercase tracking-wide">
           Panic
         </span>
@@ -61,10 +59,10 @@ const PanicButton = ({ onPanicClick }: PanicButtonProps) => {
           Tap for help
         </span>
       </Button>
-      
+
       {/* Pulsing glow effect */}
-      <div 
-        className="absolute inset-0 rounded-full bg-[#FFADAD] opacity-20 -z-10 blur-2xl"
+      <div
+        className="absolute inset-0 rounded-full bg-rose-400 opacity-20 -z-10 blur-2xl"
         style={{
           animation: "pulse 3s ease-in-out infinite",
         }}

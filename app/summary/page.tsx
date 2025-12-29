@@ -11,7 +11,7 @@ import SummaryCard from "@/components/SummaryCard";
 import DocumentUploadCard from "@/components/DocumentUploadCard";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Loader2, Download, Calendar } from "lucide-react";
+import { ArrowLeft, Loader2, Download, Calendar, Sparkles, Lightbulb, Heart, FileText } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -306,402 +306,224 @@ const WeeklySummaryPage = () => {
           </div>
         </header>
 
-        <main className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
-          {/* Header with Quick Stats */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-medium text-foreground">
-                Weekly Summary
-              </h2>
-              <Button variant="outline" size="sm" className="border-border text-muted-foreground">
-                <Calendar className="w-4 h-4 mr-2" />
-                Last 7 days
-              </Button>
+        <main className="container mx-auto px-4 py-8 max-w-6xl space-y-8">
+
+          {/* 1. AI WEEKLY INSIGHTS - 3 Block Focus */}
+          <section className="animate-fade-in">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="w-5 h-5 text-indigo-500" />
+              <h2 className="text-lg font-medium text-gray-800">AI Reflections</h2>
             </div>
 
-            {/* Quick Stats Row */}
-            {summaryData && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <Card className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-                  <div className="text-2xl font-bold text-blue-900">{summaryData.totalCompulsions}</div>
-                  <div className="text-xs text-blue-600">Total logs</div>
-                </Card>
-                <Card className="p-4 bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-                  <div className="text-2xl font-bold text-green-900">{summaryData.checkInsCount || 0}</div>
-                  <div className="text-xs text-green-600">Check-ins</div>
-                </Card>
-                <Card className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-                  <div className="text-2xl font-bold text-purple-900">{summaryData.avgTimeSpent}m</div>
-                  <div className="text-xs text-purple-600">Avg time</div>
-                </Card>
-                <Card className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-                  <div className="text-2xl font-bold text-orange-900">{summaryData.panicEpisodesCount || 0}</div>
-                  <div className="text-xs text-orange-600">Pause moments</div>
-                </Card>
-              </div>
-            )}
-          </div>
-
-          {/* 1. AI WEEKLY INSIGHTS - PRIMARY FOCUS */}
-          <Card className="p-8 shadow-soft bg-gradient-to-br from-card to-muted/10 border-primary/20">
-            <div className="flex items-center gap-2 mb-6">
-              <h3 className="text-lg font-medium text-foreground">
-                Weekly Insights
-              </h3>
-              <span className="text-xs text-primary bg-primary/10 px-2 py-1 rounded">AI-Generated</span>
-            </div>
-
-            <div className="space-y-6">
-              {/* What Helped */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-success text-lg">✓</span>
-                  <h4 className="text-base font-medium text-foreground">What helped</h4>
-                </div>
-                <p className="text-base text-foreground leading-relaxed pl-7">
-                  {summaryData.textSummary || "Your journal entries show you're recognizing triggers earlier. This awareness is giving you more time to respond rather than react."}
-                </p>
-              </div>
-
-              {/* All Insights */}
-              {summaryData.insights && summaryData.insights.length > 0 && (
-                <div className="space-y-4">
-                  {summaryData.insights.map((insight, index) => (
-                    <div key={index} className={index > 0 ? "pt-4 border-t border-border/50" : ""}>
-                      <div className="flex items-start gap-3 mb-2">
-                        <span className="text-primary text-lg shrink-0">
-                          {index === 0 ? "◆" : index === summaryData.insights!.length - 1 ? "→" : "•"}
-                        </span>
-                        <div className="flex-1">
-                          <h4 className="text-sm font-medium text-foreground mb-2">
-                            {index === 0
-                              ? "Key pattern this week"
-                              : index === summaryData.insights!.length - 1
-                                ? "Suggestion for next week"
-                                : `Insight ${index + 1}`}
-                          </h4>
-                          <p className="text-sm text-foreground/90 leading-relaxed">
-                            {insight}
-                          </p>
-                        </div>
-                      </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Block 1: Pattern Detected */}
+              <Card className="p-6 bg-white shadow-soft border-l-4 border-l-blue-400 hover-lift">
+                <div className="flex flex-col h-full">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                      <Sparkles className="w-5 h-5" />
                     </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="pt-4 border-t border-border">
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    onClick={() => router.push("/journal")}
-                    variant="outline"
-                    size="sm"
-                    className="border-border"
-                  >
-                    Log a reflection
-                  </Button>
-                  <Button
-                    onClick={() => router.push("/targets")}
-                    variant="outline"
-                    size="sm"
-                    className="border-border"
-                  >
-                    Set a goal
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Document Upload Section */}
-          <DocumentUploadCard userId={user.id} onUploadSuccess={fetchDocumentAnalysis} />
-
-          {/* Document Analysis Section */}
-          {documentAnalysis && (
-            <Card className="p-6 shadow-soft bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
-              <div className="flex items-start gap-3 mb-3">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white">
-                  📄
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-indigo-900 mb-1">
-                    Document Insights
-                  </h3>
-                  <p className="text-xs text-indigo-600 mb-3">
-                    AI analysis of your uploaded documents
+                    <h3 className="font-semibold text-gray-800">Pattern Detected</h3>
+                  </div>
+                  <p className="text-sm text-gray-600 leading-relaxed flex-1">
+                    {summaryData.insights && summaryData.insights[0] ? summaryData.insights[0] : "You tend to check more frequently during the evening hours."}
                   </p>
-                  {loadingDocAnalysis ? (
-                    <div className="flex items-center gap-2 text-sm text-indigo-600">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Analyzing documents...
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {documentAnalysis}
-                    </p>
-                  )}
                 </div>
-              </div>
-              <Button
-                onClick={fetchDocumentAnalysis}
-                variant="outline"
-                size="sm"
-                disabled={loadingDocAnalysis}
-                className="mt-3 border-indigo-300 text-indigo-700 hover:bg-indigo-100"
-              >
-                🔄 Refresh Analysis
-              </Button>
+              </Card>
 
-              {/* Uploaded Documents List */}
-              {uploadedDocuments.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-indigo-200">
-                  <h4 className="text-xs font-medium text-indigo-900 mb-2">
-                    Uploaded Documents ({uploadedDocuments.length})
-                  </h4>
-                  <div className="space-y-2">
-                    {uploadedDocuments.map((doc: any) => (
-                      <div key={doc._id || doc.fileName} className="flex items-center justify-between p-2 bg-white rounded border border-indigo-100">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium text-gray-800">{doc.fileName}</p>
-                            {doc.fileUrl && (
-                              <Button
-                                onClick={() => window.open(doc.fileUrl, '_blank')}
-                                variant="ghost"
-                                size="sm"
-                                className="text-xs h-6 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                              >
-                                👁️ View
-                              </Button>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            {new Date(doc.uploadDate).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          {doc.ocrText && (
-                            <Button
-                              onClick={() => setSelectedDoc({ fileName: doc.fileName, ocrText: doc.ocrText, uploadDate: doc.uploadDate })}
-                              variant="ghost"
-                              size="sm"
-                              className="text-xs"
-                            >
-                              View OCR
-                            </Button>
-                          )}
-                          <Button
-                            onClick={() => handleDeleteDocument(doc._id)}
-                            variant="ghost"
-                            size="sm"
-                            disabled={deletingDocId === doc._id}
-                            className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            {deletingDocId === doc._id ? "..." : "Delete"}
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+              {/* Block 2: What Helped */}
+              <Card className="p-6 bg-white shadow-soft border-l-4 border-l-green-400 hover-lift">
+                <div className="flex flex-col h-full">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 bg-green-50 rounded-lg text-green-600">
+                      <Heart className="w-5 h-5" />
+                    </div>
+                    <h3 className="font-semibold text-gray-800">What Helped</h3>
                   </div>
+                  <p className="text-sm text-gray-600 leading-relaxed flex-1">
+                    {summaryData.textSummary ? summaryData.textSummary.split('.')[0] + '.' : "Taking deep breaths before acting seemed to reduce anxiety intensity."}
+                  </p>
                 </div>
-              )}
+              </Card>
 
-              {/* OCR Text Modal */}
-              {selectedDoc && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedDoc(null)}>
-                  <div className="bg-white rounded-lg p-6 max-w-3xl w-full max-h-[85vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center justify-between mb-4 pb-3 border-b">
-                      <div>
-                        <h3 className="font-semibold text-lg">Extracted Text (OCR)</h3>
-                        <p className="text-xs text-gray-500 mt-1">{selectedDoc.fileName}</p>
-                      </div>
-                      <Button onClick={() => setSelectedDoc(null)} variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">✕</Button>
+              {/* Block 3: Gentle Suggestion */}
+              <Card className="p-6 bg-white shadow-soft border-l-4 border-l-purple-400 hover-lift">
+                <div className="flex flex-col h-full">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
+                      <Lightbulb className="w-5 h-5" />
                     </div>
-                    <pre className="text-sm bg-gray-50 p-5 rounded-lg whitespace-pre-wrap font-mono leading-relaxed border border-gray-200">
-                      {selectedDoc.ocrText}
-                    </pre>
-                    <div className="flex gap-3 mt-5 pt-4 border-t">
-                      <Button
-                        onClick={() => {
-                          const { jsPDF } = require('jspdf');
-                          const doc = new jsPDF();
-
-                          // Add title
-                          doc.setFontSize(16);
-                          doc.setFont(undefined, 'bold');
-                          doc.text('OCR Document Extract', 20, 20);
-
-                          // Add metadata
-                          doc.setFontSize(10);
-                          doc.setFont(undefined, 'normal');
-                          doc.setTextColor(100);
-                          doc.text(`File: ${selectedDoc.fileName}`, 20, 30);
-                          doc.text(`Extracted: ${new Date(selectedDoc.uploadDate).toLocaleDateString()}`, 20, 36);
-                          doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 20, 42);
-
-                          // Add divider
-                          doc.setDrawColor(200);
-                          doc.line(20, 48, 190, 48);
-
-                          // Add OCR text with proper wrapping
-                          doc.setFontSize(11);
-                          doc.setTextColor(0);
-                          const splitText = doc.splitTextToSize(selectedDoc.ocrText, 170);
-                          doc.text(splitText, 20, 56);
-
-                          // Save PDF
-                          const fileName = selectedDoc.fileName.replace(/\.[^/.]+$/, '') + '_OCR.pdf';
-                          doc.save(fileName);
-
-                          toast({
-                            title: "PDF generated",
-                            description: "OCR text exported as PDF",
-                          });
-                        }}
-                        variant="default"
-                        size="sm"
-                        className="bg-primary"
-                      >
-                        📄 Export as PDF
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          navigator.clipboard.writeText(selectedDoc.ocrText);
-                          toast({
-                            title: "Copied to clipboard",
-                            description: "OCR text copied successfully",
-                          });
-                        }}
-                        variant="outline"
-                        size="sm"
-                      >
-                        📋 Copy Text
-                      </Button>
-                    </div>
+                    <h3 className="font-semibold text-gray-800">Suggestion</h3>
                   </div>
+                  <p className="text-sm text-gray-600 leading-relaxed flex-1">
+                    {summaryData.insights && summaryData.insights.length > 0 ? summaryData.insights[summaryData.insights.length - 1] : "Try tracking your mood right after a compulsion next time."}
+                  </p>
                 </div>
-              )}
-            </Card>
-          )}
+              </Card>
+            </div>
+          </section>
 
-          {/* 2. DATA & TRENDS SECTION - SUPPORTING EVIDENCE */}
-          <div>
-            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-4">
-              Data & Trends
+          {/* 2. DATA & TRENDS SECTION */}
+          <section className="animate-fade-in delay-100">
+            <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-4 flex items-center gap-2">
+              <span className="w-4 h-[1px] bg-gray-300"></span> Trends <span className="w-full h-[1px] bg-gray-200"></span>
             </h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Compulsions Chart */}
-              <Card className="p-5 shadow-soft bg-card border-border">
-                <h4 className="text-sm font-medium text-foreground mb-4">
-                  Daily Compulsions
+              <Card className="p-6 shadow-soft bg-white border-gray-100">
+                <h4 className="text-sm font-medium text-gray-700 mb-6">
+                  Daily Log Frequency
                 </h4>
-                <ResponsiveContainer width="100%" height={240}>
-                  <BarChart data={summaryData.chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis
-                      dataKey="day"
-                      stroke="hsl(var(--muted-foreground))"
-                      style={{ fontSize: '12px' }}
-                    />
-                    <YAxis
-                      stroke="hsl(var(--muted-foreground))"
-                      style={{ fontSize: '12px' }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--card))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
-                      }}
-                    />
-                    <Bar
-                      dataKey="compulsions"
-                      fill="hsl(var(--primary))"
-                      radius={[4, 4, 0, 0]}
-                      name="Compulsions"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="h-[240px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={summaryData.chartData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                      <XAxis
+                        dataKey="day"
+                        stroke="#9CA3AF"
+                        tick={{ fontSize: 11 }}
+                        tickLine={false}
+                        axisLine={false}
+                        dy={10}
+                      />
+                      <YAxis
+                        stroke="#9CA3AF"
+                        tick={{ fontSize: 11 }}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <Tooltip
+                        cursor={{ fill: '#F3F4F6' }}
+                        contentStyle={{
+                          backgroundColor: '#FFFFFF',
+                          border: 'none',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                          borderRadius: '8px',
+                          fontSize: '12px'
+                        }}
+                      />
+                      <Bar
+                        dataKey="compulsions"
+                        fill="#3B82F6"
+                        radius={[4, 4, 0, 0]}
+                        barSize={32}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </Card>
 
               {/* Time Spent Chart */}
-              <Card className="p-5 shadow-soft bg-card border-border">
-                <h4 className="text-sm font-medium text-foreground mb-4">
-                  Time Spent (minutes)
+              <Card className="p-6 shadow-soft bg-white border-gray-100">
+                <h4 className="text-sm font-medium text-gray-700 mb-6">
+                  Total Time Spent (min)
                 </h4>
-                <ResponsiveContainer width="100%" height={240}>
-                  <LineChart data={summaryData.chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis
-                      dataKey="day"
-                      stroke="hsl(var(--muted-foreground))"
-                      style={{ fontSize: '12px' }}
-                    />
-                    <YAxis
-                      stroke="hsl(var(--muted-foreground))"
-                      style={{ fontSize: '12px' }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--card))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
-                      }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="timeSpent"
-                      stroke="hsl(var(--success))"
-                      strokeWidth={2}
-                      dot={{ fill: 'hsl(var(--success))', r: 4 }}
-                      name="Minutes"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </Card>
-            </div>
-          </div>
-
-          {/* 3. KEY METRICS - SUPPORTING DATA */}
-          <div>
-            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-4">
-              Key Metrics
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="p-4 shadow-soft bg-card border-border">
-                <p className="text-xs text-muted-foreground mb-2">Total Compulsions</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-semibold text-foreground">
-                    {summaryData.totalCompulsions || 0}
-                  </span>
-                  {summaryData.compulsionChange && summaryData.compulsionChange < 0 && (
-                    <span className="text-xs text-success">
-                      ↓ {Math.abs(summaryData.compulsionChange)}%
-                    </span>
-                  )}
+                <div className="h-[240px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={summaryData.chartData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                      <XAxis
+                        dataKey="day"
+                        stroke="#9CA3AF"
+                        tick={{ fontSize: 11 }}
+                        tickLine={false}
+                        axisLine={false}
+                        dy={10}
+                      />
+                      <YAxis
+                        stroke="#9CA3AF"
+                        tick={{ fontSize: 11 }}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#FFFFFF',
+                          border: 'none',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                          borderRadius: '8px',
+                          fontSize: '12px'
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="timeSpent"
+                        stroke="#10B981"
+                        strokeWidth={2.5}
+                        dot={{ fill: '#10B981', r: 4, strokeWidth: 2, stroke: '#FFFFFF' }}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
               </Card>
-              <Card className="p-4 shadow-soft bg-card border-border">
-                <p className="text-xs text-muted-foreground mb-2">Avg Time</p>
-                <span className="text-2xl font-semibold text-foreground">
-                  {summaryData.avgTimeSpent || 0}<span className="text-sm text-muted-foreground font-normal ml-1">min</span>
-                </span>
+            </div>
+          </section>
+
+          {/* 3. KEY METRICS CARDS */}
+          <section className="animate-fade-in delay-200">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card className="p-4 bg-blue-50/50 border-blue-100 border text-center hover:bg-blue-50 transition-colors">
+                <div className="text-xs text-blue-600 font-medium mb-1 uppercase tracking-wide">Total Logs</div>
+                <div className="text-3xl font-bold text-blue-900">{summaryData.totalCompulsions}</div>
               </Card>
-              <Card className="p-4 shadow-soft bg-card border-border">
-                <p className="text-xs text-muted-foreground mb-2">Avg Mood</p>
-                <span className="text-2xl font-semibold text-foreground">
-                  {summaryData.moodAverage || "N/A"}<span className="text-sm text-muted-foreground font-normal">/10</span>
-                </span>
+              <Card className="p-4 bg-purple-50/50 border-purple-100 border text-center hover:bg-purple-50 transition-colors">
+                <div className="text-xs text-purple-600 font-medium mb-1 uppercase tracking-wide">Avg Time</div>
+                <div className="text-3xl font-bold text-purple-900">{summaryData.avgTimeSpent}<span className="text-sm font-normal ml-1">min</span></div>
               </Card>
-              <Card className="p-4 shadow-soft bg-card border-border">
-                <p className="text-xs text-muted-foreground mb-2">Top Trigger</p>
-                <span className="text-sm font-medium text-foreground">
-                  {summaryData.mostCommonTrigger || "None"}
-                </span>
+              <Card className="p-4 bg-orange-50/50 border-orange-100 border text-center hover:bg-orange-50 transition-colors">
+                <div className="text-xs text-orange-600 font-medium mb-1 uppercase tracking-wide">Avg Anxiety</div>
+                <div className="text-3xl font-bold text-orange-900">{summaryData.moodAverage || "-"}<span className="text-sm font-normal ml-1">/10</span></div>
+              </Card>
+              <Card className="p-4 bg-green-50/50 border-green-100 border text-center hover:bg-green-50 transition-colors">
+                <div className="text-xs text-green-600 font-medium mb-1 uppercase tracking-wide">Check-ins</div>
+                <div className="text-3xl font-bold text-green-900">{summaryData.checkInsCount || 0}</div>
               </Card>
             </div>
-          </div>
+          </section>
+
+          {/* 4. DOCUMENT & OCR SECTION */}
+          <section className="animate-fade-in delay-300">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-gray-800 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-gray-400" />
+                Bring external context into your journey
+              </h3>
+            </div>
+
+            {/* Upload Card */}
+            <DocumentUploadCard userId={user.id} onUploadSuccess={fetchDocumentAnalysis} />
+
+            {/* Analysis Result */}
+            {documentAnalysis && (
+              <Card className="mt-6 p-6 shadow-soft bg-gradient-to-br from-indigo-50/50 to-white border-indigo-100 group">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <Sparkles className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-base font-semibold text-indigo-900 mb-1">AI Document Summary</h4>
+                    <p className="text-sm text-gray-600 leading-relaxed mb-4">
+                      {documentAnalysis}
+                    </p>
+
+                    {/* Uploaded Files Pills */}
+                    {uploadedDocuments.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-indigo-100/50">
+                        {uploadedDocuments.map((doc: any) => (
+                          <div key={doc._id} className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full border border-indigo-100 shadow-sm text-xs text-gray-600">
+                            <span>📄 {doc.fileName}</span>
+                            <button onClick={() => handleDeleteDocument(doc._id)} className="text-gray-400 hover:text-red-500 ml-1">×</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            )}
+          </section>
+
         </main>
       </div>
     </ProtectedRoute>

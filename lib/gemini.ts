@@ -10,28 +10,27 @@ import type { InsightData } from './behavioral-insights';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
-// Model fallback chain: COMPREHENSIVE list of free tier models for maximum redundancy
-// Request capacity: ~100+ RPM total across all models
-const MODEL_CHAIN = [
-  // 2.5 Series (Newest)
-  "models/gemini-2.5-flash",
-  "models/gemini-2.5-flash-lite",
-  "models/gemini-2.5-pro",
+// Validate API key on module load
+if (!GEMINI_API_KEY && process.env.NODE_ENV !== "test") {
+  console.warn("⚠️ GEMINI_API_KEY not set in environment variables. Gemini features will use fallback responses.");
+}
 
-  // 2.0 Series
-  "models/gemini-2.0-flash",
-  "models/gemini-2.0-flash-lite-001",
-
-  // 1.5 Series (Stable)
-  "models/gemini-1.5-flash",
-  "models/gemini-1.5-flash-8b",
-  "models/gemini-1.5-pro",
-
-  // Legacy
-  "models/gemini-pro"
+export const MODEL_CHAIN = [
+  // 1. Latest 2.5 models (most current)
+  "gemini-2.5-flash",
+  "gemini-2.5-flash-lite",
+  "gemini-2.5-pro",
+  
+  // 2. 2.0 models (stable fallback)
+  "gemini-2.0-flash",
+  "gemini-2.0-flash-exp",
+  
+  // 3. 1.5 models (older stable versions)
+  "gemini-1.5-flash",
+  "gemini-1.5-pro",
 ];
 
-const BASE_ENDPOINT = "https://generativelanguage.googleapis.com/v1";
+const BASE_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta";
 
 // Hardcoded fallback responses when all models are unavailable
 const FALLBACK_RESPONSES = {
@@ -62,13 +61,18 @@ const FALLBACK_RESPONSES = {
  * Make a direct REST API call to Gemini with full model chain fallback
  */
 async function callGemini(prompt: string, modelIndex: number = 0): Promise<string> {
+  // Check API key first
+  if (!GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY not configured. Please set it in your .env.local file.");
+  }
+
   // If we've exhausted all models, throw to trigger hardcoded fallback
   if (modelIndex >= MODEL_CHAIN.length) {
     throw new Error("All Gemini models exhausted");
   }
 
   const model = MODEL_CHAIN[modelIndex];
-  const endpoint = `${BASE_ENDPOINT}/${model}:generateContent`;
+  const endpoint = `${BASE_ENDPOINT}/models/${model}:generateContent`;
 
   return withRetry(async () => {
     try {
@@ -80,22 +84,49 @@ async function callGemini(prompt: string, modelIndex: number = 0): Promise<strin
         }),
       });
 
-      if (response.status === 429) {
-        console.warn(`⚠️ Rate limit hit for ${model}`);
-        // Try next model in chain
+      // Read response once
+      const responseText = await response.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        // Response might not be JSON
+        data = { raw: responseText };
+      }
+
+      // Handle Rate Limits (429) AND Not Found (404) by skipping to next model
+      if (response.status === 429 || response.status === 404 || response.status === 400) {
+        const errorMsg = data?.error?.message || `Status ${response.status}`;
+        console.warn(`⚠️ Model skipped: ${model} (Status: ${response.status}, Error: ${errorMsg})`);
+
         if (modelIndex < MODEL_CHAIN.length - 1) {
           console.log(`🔄 Attempting fallback to ${MODEL_CHAIN[modelIndex + 1]}`);
           return callGemini(prompt, modelIndex + 1);
         }
-        throw new Error(`All Gemini models rate limited`);
+        throw new Error(`All Gemini models failed (last error: ${response.status} - ${errorMsg})`);
+      }
+
+      // Handle 401/403 (authentication errors)
+      if (response.status === 401 || response.status === 403) {
+        const errorMsg = data?.error?.message || "Invalid API key";
+        console.error(`❌ Gemini API authentication failed: ${errorMsg}`);
+        throw new Error(`Gemini API authentication failed: ${errorMsg}. Please check your GEMINI_API_KEY.`);
       }
 
       if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.status}`);
+        const errorMsg = data?.error?.message || `Status ${response.status}`;
+        throw new Error(`Gemini API error: ${response.status} - ${errorMsg}`);
       }
 
-      const data = await response.json();
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+      if (!text) {
+        console.warn(`⚠️ Empty response from ${model}, trying next model`);
+        if (modelIndex < MODEL_CHAIN.length - 1) {
+          return callGemini(prompt, modelIndex + 1);
+        }
+        throw new Error("Empty response from Gemini API");
+      }
 
       if (modelIndex > 0) {
         console.log(`✓ Succeeded with fallback model: ${model}`);
@@ -103,12 +134,26 @@ async function callGemini(prompt: string, modelIndex: number = 0): Promise<strin
 
       return text;
     } catch (error) {
-      // If this isn't the last model, try the next one
-      if (modelIndex < MODEL_CHAIN.length - 1 && (error as Error).message.includes('429')) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      
+      // Log the actual error for debugging
+      console.error(`❌ Error calling ${model}:`, {
+        message: errorMessage,
+        stack: errorStack,
+        modelIndex,
+        endpoint: `${BASE_ENDPOINT}/models/${model}:generateContent`,
+      });
+
+      // If this isn't the last model, try the next one for ANY fetch error
+      if (modelIndex < MODEL_CHAIN.length - 1) {
+        console.warn(`⚠️ Error with ${model}: ${errorMessage}`);
         console.log(`🔄 Attempting fallback to ${MODEL_CHAIN[modelIndex + 1]}`);
         return callGemini(prompt, modelIndex + 1);
       }
-      throw error;
+      
+      // If all models exhausted, throw with more context
+      throw new Error(`All Gemini models failed. Last error from ${model}: ${errorMessage}`);
     }
   });
 }

@@ -139,14 +139,31 @@ export async function GET(request: NextRequest) {
     const currentMood = moods[0];
     const moodEmoji = currentMood ? currentMood.mood : null;
     const moodLabels: Record<string, string> = {
+      "🌟": "Happy",
+      "🫧": "Calm",
+      "😶": "Neutral",
+      "😵‍💫": "Anxious",
+      "💔": "Sad",
+      "💢": "Frustrated",
+      "😮‍💨": "Stressed",
+      "🛌": "Tired",
+      // Legacy emoji support for backward compatibility
+      "🤩": "Happy",
+      "😄": "Happy",
       "😊": "Happy",
       "😌": "Calm",
+      "🧘": "Calm",
       "😐": "Neutral",
+      "😑": "Neutral",
       "😟": "Anxious",
+      "😰": "Anxious",
       "😢": "Sad",
+      "😔": "Sad",
       "😤": "Frustrated",
-      "😰": "Stressed",
+      "😠": "Frustrated",
+      "😓": "Stressed",
       "😴": "Tired",
+      "🥱": "Tired",
     };
 
     // Weekly mood strip (last 7 days)
@@ -166,7 +183,7 @@ export async function GET(request: NextRequest) {
       });
       
       weeklyStrip.push({
-        emoji: dayMood ? dayMood.mood : "😐",
+        emoji: dayMood ? dayMood.mood : "😶",
         label: daysOfWeek[dayIndex],
         day: daysOfWeek[dayIndex],
       });

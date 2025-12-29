@@ -50,11 +50,11 @@ npm run dev
 
 ## 📝 Environment Variables
 
-Copy `.env.example` to `.env.local` and fill in your values:
+Create a `.env` or `.env.local` file in the root directory and fill in your values:
 
 ```env
-# OpenAI API Key for LLM features
-OPENAI_API_KEY=sk-your-key-here
+# Google Gemini API Key for LLM features
+GEMINI_API_KEY=your-gemini-api-key-here
 
 # Database URL
 DATABASE_URL=mongodb://localhost:27017/compulsecare
@@ -63,6 +63,12 @@ DATABASE_URL=mongodb://localhost:27017/compulsecare
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=generate-with-openssl-rand-base64-32
 ```
+
+**Getting a Gemini API Key:**
+1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Sign in with your Google account
+3. Click "Create API Key"
+4. Copy the key and add it to your `.env` file as `GEMINI_API_KEY`
 
 ## 📁 Project Structure
 

@@ -90,12 +90,12 @@ export default function CheckInModal({ userId }: { userId: string }) {
         if (data.checkIns && data.checkIns.length > 0) {
           const lastCheckIn = new Date(data.checkIns[0].createdAt);
           const today = new Date();
-          
+
           // Check if last check-in was today (same day)
           const isToday = lastCheckIn.getDate() === today.getDate() &&
-                         lastCheckIn.getMonth() === today.getMonth() &&
-                         lastCheckIn.getFullYear() === today.getFullYear();
-          
+            lastCheckIn.getMonth() === today.getMonth() &&
+            lastCheckIn.getFullYear() === today.getFullYear();
+
           setAlreadyCheckedIn(isToday);
         } else {
           setAlreadyCheckedIn(false);
@@ -122,7 +122,7 @@ export default function CheckInModal({ userId }: { userId: string }) {
       const headers: HeadersInit = {
         "Content-Type": "application/json",
       };
-      
+
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -167,7 +167,7 @@ export default function CheckInModal({ userId }: { userId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full">
+        <Button id="check-in-trigger" variant="outline" className="w-full">
           <ClipboardList className="mr-2 h-4 w-4" />
           Daily Check-In
         </Button>
@@ -196,58 +196,57 @@ export default function CheckInModal({ userId }: { userId: string }) {
           </div>
         ) : (
           <div className="space-y-6 py-4">
-          {STANDARD_QUESTIONS.map((question) => (
-            <div key={question.id} className="space-y-2">
-              <Label className="text-sm font-medium">{question.question}</Label>
-              <div className="flex items-center gap-4">
-                <span className="text-xs text-muted-foreground min-w-[80px]">
-                  {question.minLabel}
-                </span>
-                <Slider
-                  value={[responses[question.id] || 5]}
-                  onValueChange={(value) => handleSliderChange(question.id, value)}
-                  min={0}
-                  max={10}
-                  step={1}
-                  className="flex-1"
-                />
-                <span className="text-xs text-muted-foreground min-w-[80px] text-right">
-                  {question.maxLabel}
-                </span>
+            {STANDARD_QUESTIONS.map((question) => (
+              <div key={question.id} className="space-y-2">
+                <Label className="text-sm font-medium">{question.question}</Label>
+                <div className="flex items-center gap-4">
+                  <span className="text-xs text-muted-foreground min-w-[80px]">
+                    {question.minLabel}
+                  </span>
+                  <Slider
+                    value={[responses[question.id] || 5]}
+                    onValueChange={(value) => handleSliderChange(question.id, value)}
+                    min={0}
+                    max={10}
+                    step={1}
+                    className="flex-1"
+                  />
+                  <span className="text-xs text-muted-foreground min-w-[80px] text-right">
+                    {question.maxLabel}
+                  </span>
+                </div>
+                <div className="text-center text-sm font-medium">
+                  {responses[question.id] !== undefined ? responses[question.id] : 5}
+                </div>
               </div>
-              <div className="text-center text-sm font-medium">
-                {responses[question.id] !== undefined ? responses[question.id] : 5}
-              </div>
-            </div>
-          ))}
+            ))}
 
-          <div className="space-y-2">
-            <Label htmlFor="notes" className="text-sm font-medium">
-              Additional Notes (Optional)
-            </Label>
-            <Textarea
-              id="notes"
-              placeholder="Any additional thoughts or context about your day..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="notes" className="text-sm font-medium">
+                Additional Notes (Optional)
+              </Label>
+              <Textarea
+                id="notes"
+                placeholder="Any additional thoughts or context about your day..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            {message && (
+              <div
+                className={`text-sm ${message.includes("success") ? "text-green-600" : "text-red-600"
+                  }`}
+              >
+                {message}
+              </div>
+            )}
+
+            <Button onClick={handleSubmit} disabled={loading} className="w-full">
+              {loading ? "Submitting..." : "Submit Check-In"}
+            </Button>
           </div>
-
-          {message && (
-            <div
-              className={`text-sm ${
-                message.includes("success") ? "text-green-600" : "text-red-600"
-              }`}
-            >
-              {message}
-            </div>
-          )}
-
-          <Button onClick={handleSubmit} disabled={loading} className="w-full">
-            {loading ? "Submitting..." : "Submit Check-In"}
-          </Button>
-        </div>
         )}
       </DialogContent>
     </Dialog>

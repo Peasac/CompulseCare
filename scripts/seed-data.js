@@ -63,14 +63,14 @@ async function seedData() {
     console.log(`✅ Created ${journalEntries.length} journal entries\n`);
     
     // Seed mood entries
-    console.log('😊 Creating mood entries...');
+    console.log('🌟 Creating mood entries...');
     const moodEntries = [];
     const moods = [
-      { emoji: '😊', intensity: 8 },
-      { emoji: '😌', intensity: 7 },
-      { emoji: '😐', intensity: 5 },
-      { emoji: '😟', intensity: 4 },
-      { emoji: '😢', intensity: 3 },
+      { emoji: '🌟', intensity: 8 },
+      { emoji: '🫧', intensity: 7 },
+      { emoji: '😶', intensity: 5 },
+      { emoji: '😵‍💫', intensity: 4 },
+      { emoji: '💔', intensity: 3 },
     ];
     
     for (let i = 6; i >= 0; i--) {

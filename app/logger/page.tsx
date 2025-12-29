@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,7 @@ interface CompulsionLog {
 const LoggerPage = () => {
   const router = useRouter();
   const { toast } = useToast();
+  const { user, isLoading: authLoading } = useAuth();
   const [logs, setLogs] = useState<CompulsionLog[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<CompulsionLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,24 +57,46 @@ const LoggerPage = () => {
   const CATEGORIES = ["All", "Checking", "Cleaning", "Organizing", "Counting", "Other"];
 
   useEffect(() => {
-    fetchLogs();
-  }, []);
+    if (!authLoading && user) {
+      fetchLogs();
+    } else if (!authLoading && !user) {
+      // User not logged in, redirect to login
+      router.push("/login");
+    }
+  }, [user, authLoading]);
 
   useEffect(() => {
     filterLogs();
   }, [logs, searchQuery, selectedCategory, dateRange]);
 
   const fetchLogs = async () => {
+    if (!user?.id) {
+      console.warn("No user ID available");
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // TODO: Fetch from API
-      const response = await fetch("/api/journal?userId=user123&limit=50");
+      const response = await fetch(`/api/journal?userId=${user.id}&limit=50`);
       if (response.ok) {
         const data = await response.json();
         setLogs(data.entries || []);
+      } else {
+        console.error("Failed to fetch logs:", response.statusText);
+        toast({
+          title: "Error",
+          description: "Failed to load journal entries",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Failed to fetch logs:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load journal entries",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -116,8 +140,37 @@ const LoggerPage = () => {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this entry?")) return;
     
-    // TODO: Call delete API
+    // Optimistically remove from UI
+    const deletedLog = logs.find((log) => log.id === id);
     setLogs(logs.filter((log) => log.id !== id));
+    setFilteredLogs(filteredLogs.filter((log) => log.id !== id));
+
+    try {
+      const response = await fetch(`/api/journal/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete entry");
+      }
+
+      toast({
+        title: "Success",
+        description: "Entry deleted successfully",
+      });
+    } catch (error) {
+      console.error("Failed to delete entry:", error);
+      // Restore on error
+      if (deletedLog) {
+        setLogs((prev) => [...prev, deletedLog]);
+        // filterLogs will be called automatically by useEffect when logs change
+      }
+      toast({
+        title: "Delete failed",
+        description: "Failed to delete entry. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleExport = () => {

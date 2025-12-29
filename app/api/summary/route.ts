@@ -226,7 +226,7 @@ Keep tone positive, validating, and hopeful. Focus on patterns and small wins.`;
     if (entries.length >= 10) { // Need sufficient data for pattern detection
       try {
         // Check cache
-        const behavioralCacheKey = `summary:behavioral:${userId}:${entries.length}`;
+        const behavioralCacheKey = `summary:behavioral:${userId}:${sevenDaysAgo.toISOString()}`;
         let cachedBehavioralText = getCached<string[]>(behavioralCacheKey);
         
         if (!cachedBehavioralText) {
@@ -241,10 +241,13 @@ Keep tone positive, validating, and hopeful. Focus on patterns and small wins.`;
           const topInsights = getTopInsights(behavioralAnalysis, 3);
 
           // Transform each insight to human-readable text using LLM
-          const insightPromises = topInsights.map(insight => 
-            explainBehavioralInsight(insight)
-          );
-          behavioralInsights = await Promise.all(insightPromises);
+          behavioralInsights = [];
+
+          for (const insight of topInsights) {
+            const explained = await explainBehavioralInsight(insight);
+            behavioralInsights.push(explained);
+          }
+
 
           // Cache behavioral insights
           setCache(behavioralCacheKey, behavioralInsights);
