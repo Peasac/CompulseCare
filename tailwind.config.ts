@@ -81,6 +81,16 @@ export default {
             height: "0",
           },
         },
+        "breatheInOut": {
+          "0%, 100%": {
+            transform: "scale(1)",
+            opacity: "0.7",
+          },
+          "50%": {
+            transform: "scale(1.3)",
+            opacity: "0.9",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",

@@ -167,7 +167,7 @@ export default function DashboardPage() {
             {/* Conditionally Render Widget with Fade Effect */}
             <div className="animate-fade-in">
               {targetView === 'daily' ? (
-                <DailyTargetsWidget streak={dashboardData ? dashboardData.mood.stats.streak : 0} />
+                <DailyTargetsWidget streak={dashboardData?.mood?.stats?.streak ?? 0} />
               ) : (
                 <WeeklyTargetsWidget />
               )}
@@ -176,7 +176,7 @@ export default function DashboardPage() {
             {/* Check-In Section (New Compact Strip) */}
             <div className="mt-4">
               <CheckInStrip
-                streak={dashboardData ? dashboardData.mood.stats.streak : 0}
+                streak={dashboardData?.mood?.stats?.streak ?? 0}
                 onCheckIn={() => document.getElementById("check-in-trigger")?.click()}
                 onHistoryClick={() => router.push("/checkin")}
               />
