@@ -3,6 +3,8 @@ import connectDB from "@/lib/mongodb";
 import ImportedDocument from "@/lib/models/ImportedDocument";
 import { analyzeDocuments } from "@/lib/gemini";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/documents/analyze?userId=X
  * Analyze all uploaded documents for OCD-related insights

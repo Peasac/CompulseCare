@@ -5,6 +5,8 @@ import { generateCheckInReflection } from "@/lib/gemini";
 import { analyzeBehavioralPatterns, getTopInsights } from "@/lib/behavioral-insights";
 import { jsPDF } from "jspdf";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/export
  * Generate and download a comprehensive report with:

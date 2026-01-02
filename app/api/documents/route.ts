@@ -3,6 +3,8 @@ import connectDB from "@/lib/mongodb";
 import ImportedDocument from "@/lib/models/ImportedDocument";
 import { summarizeDocument } from "@/lib/gemini";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Documents API Routes
  * 

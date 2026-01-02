@@ -8,6 +8,8 @@ import { generateDashboardSnapshotFromInsight } from "@/lib/gemini";
 import { analyzeBehavioralPatterns, getTopInsights } from "@/lib/behavioral-insights";
 import { getCached, setCache } from "@/lib/gemini-cache";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/dashboard?userId=X
  * Lightweight dashboard snapshot with aggregated data

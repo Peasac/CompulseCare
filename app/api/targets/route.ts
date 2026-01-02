@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Target from "@/lib/models/Target";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Targets API
  * 

@@ -10,6 +10,8 @@ import PanicEvent from "@/lib/models/PanicEvent";
 import CheckIn from "@/lib/models/CheckIn";
 import ImportedDocument from "@/lib/models/ImportedDocument";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/summary?userId=X
  * Weekly summary with behavioral insights and AI-generated reflection

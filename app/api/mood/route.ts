@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Mood from "@/lib/models/Mood";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Mood Tracking API
  * 

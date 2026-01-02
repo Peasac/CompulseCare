@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import { JournalEntry } from "@/lib/models";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Journal API Routes
  * 

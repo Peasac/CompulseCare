@@ -3,6 +3,8 @@ import { getPanicSupport } from "@/lib/gemini";
 import connectDB from "@/lib/mongodb";
 import { PanicEvent } from "@/lib/models";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/panic
  * Server-side endpoint for panic mode LLM support using Google Gemini

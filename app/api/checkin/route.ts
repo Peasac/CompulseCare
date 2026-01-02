@@ -3,6 +3,8 @@ import connectDB from "@/lib/mongodb";
 import CheckIn from "@/lib/models/CheckIn";
 import { generateCheckInReflection } from "@/lib/gemini";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * CheckIn API Routes
  * 
