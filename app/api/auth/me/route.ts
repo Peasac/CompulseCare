@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromRequest } from "@/lib/auth";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Example of protected API endpoint
  * GET /api/auth/me - Get current user info

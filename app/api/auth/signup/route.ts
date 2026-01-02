@@ -3,6 +3,8 @@ import connectToDatabase from "@/lib/mongodb";
 import User from "@/lib/models/User";
 import { generateToken } from "@/lib/auth";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/auth/signup
  * Register new user and return JWT token
