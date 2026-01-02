@@ -3,12 +3,21 @@
  * For storing uploaded documents (images, PDFs)
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Only create client if URL is valid
+let supabase: SupabaseClient | null = null;
+
+if (supabaseUrl && supabaseUrl.startsWith('http')) {
+  supabase = createClient(supabaseUrl, supabaseAnonKey);
+} else {
+  console.warn('[Supabase] Missing or invalid NEXT_PUBLIC_SUPABASE_URL - document storage disabled');
+}
+
+export { supabase };
 
 /**
  * Upload file to Supabase Storage
@@ -17,6 +26,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
  * @returns Public URL of uploaded file
  */
 export async function uploadDocumentToSupabase(file: File, userId: string): Promise<string> {
+  if (!supabase) {
+    throw new Error('Supabase not configured - please set NEXT_PUBLIC_SUPABASE_URL');
+  }
+
   const fileExt = file.name.split('.').pop();
   const fileName = `${userId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
   
@@ -45,6 +58,11 @@ export async function uploadDocumentToSupabase(file: File, userId: string): Prom
  * @param fileUrl Public URL of the file to delete
  */
 export async function deleteDocumentFromSupabase(fileUrl: string): Promise<void> {
+  if (!supabase) {
+    console.warn('[Supabase] Not configured - cannot delete file');
+    return;
+  }
+
   try {
     // Extract path from URL
     const url = new URL(fileUrl);
