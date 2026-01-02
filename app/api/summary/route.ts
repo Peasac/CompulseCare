@@ -37,11 +37,34 @@ interface WeeklySummaryResponse {
   insights: string[]; // [patterns, suggestion]
   checkInsCount?: number;
   panicEpisodesCount?: number;
+  moodLogsCount?: number;
+  // Check-in category averages
+  checkInAverages?: {
+    anxiety: number;
+    compulsionUrge: number;
+    control: number;
+    functioning: number;
+    sleep: number;
+    overallScore: number;
+  };
 }
 
-// In-memory cache for AI reflections (keyed by userId + timestamp)
-const summaryCache = new Map<string, { data: WeeklySummaryResponse; timestamp: number }>();
-const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
+// In-memory cache for AI reflections (keyed by userId + data fingerprint)
+const summaryCache = new Map<string, { data: WeeklySummaryResponse; timestamp: number; fingerprint: string }>();
+const CACHE_TTL = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+
+// Generate fingerprint from data counts to detect changes
+function generateDataFingerprint(counts: {
+  entries: number;
+  moods: number;
+  targets: number;
+  panicEvents: number;
+  checkIns: number;
+  documents: number;
+  completedTargets: number;
+}): string {
+  return `${counts.entries}-${counts.moods}-${counts.targets}-${counts.panicEvents}-${counts.checkIns}-${counts.documents}-${counts.completedTargets}`;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -53,19 +76,6 @@ export async function GET(request: NextRequest) {
         { error: "userId query parameter is required" },
         { status: 400 }
       );
-    }
-
-    // Check cache first
-    const cacheKey = `summary_${userId}`;
-    const cached = summaryCache.get(cacheKey);
-    const now = Date.now();
-
-    if (cached && now - cached.timestamp < CACHE_TTL) {
-      console.log(`[Summary API] Returning cached summary for user ${userId}`);
-      return NextResponse.json(cached.data, {
-        status: 200,
-        headers: { "X-Cache": "HIT" },
-      });
     }
 
     const conn = await connectDB();
@@ -126,6 +136,33 @@ export async function GET(request: NextRequest) {
 
     console.log(`[Summary API] Fetched data: entries=${entries.length}, checkIns=${checkIns.length}, documents=${documents.length}`);
 
+    // Generate data fingerprint to detect changes
+    const completedTargets = targets.filter((t: any) => t.completed).length;
+    const currentFingerprint = generateDataFingerprint({
+      entries: entries.length,
+      moods: moods.length,
+      targets: targets.length,
+      panicEvents: panicEvents.length,
+      checkIns: checkIns.length,
+      documents: documents.length,
+      completedTargets,
+    });
+
+    // Check cache with fingerprint validation
+    const cacheKey = `summary_${userId}`;
+    const cached = summaryCache.get(cacheKey);
+    const now = Date.now();
+
+    if (cached && now - cached.timestamp < CACHE_TTL && cached.fingerprint === currentFingerprint) {
+      console.log(`[Summary API] Returning cached summary for user ${userId} (fingerprint match)`);
+      return NextResponse.json(cached.data, {
+        status: 200,
+        headers: { "X-Cache": "HIT" },
+      });
+    } else if (cached && cached.fingerprint !== currentFingerprint) {
+      console.log(`[Summary API] Cache invalidated - data changed (${cached.fingerprint} → ${currentFingerprint})`);
+    }
+
     // Aggregate data
     const totalCompulsions = entries.length;
     const totalTimeSpent = entries.reduce((sum: number, e: any) => sum + (e.timeSpent || 0), 0);
@@ -168,7 +205,6 @@ export async function GET(request: NextRequest) {
         : 0;
 
     // Calculate target completion
-    const completedTargets = targets.filter((t: any) => t.completed).length;
     const targetCompletion = targets.length > 0 ? Math.round((completedTargets / targets.length) * 100) : 0;
 
     // TODO: Generate LLM summary using OpenAI
@@ -290,6 +326,45 @@ Keep tone positive, validating, and hopeful. Focus on patterns and small wins.`;
       reflection.suggestion, // Traditional LLM suggestion
     ].filter(Boolean);
 
+    // Calculate check-in category averages
+    let checkInAverages = undefined;
+    if (checkIns.length > 0) {
+      const categoryTotals: Record<string, { sum: number; count: number }> = {
+        anxiety: { sum: 0, count: 0 },
+        'compulsion': { sum: 0, count: 0 },
+        'compulsion-urge': { sum: 0, count: 0 }, // Legacy support
+        control: { sum: 0, count: 0 },
+        functioning: { sum: 0, count: 0 },
+        sleep: { sum: 0, count: 0 },
+      };
+      let totalScore = 0;
+      let totalResponses = 0;
+
+      checkIns.forEach((checkIn: any) => {
+        if (checkIn.responses && Array.isArray(checkIn.responses)) {
+          checkIn.responses.forEach((r: any) => {
+            if (categoryTotals[r.category]) {
+              categoryTotals[r.category].sum += r.response;
+              categoryTotals[r.category].count += 1;
+            }
+            totalScore += r.response;
+            totalResponses += 1;
+          });
+        }
+      });
+
+      checkInAverages = {
+        anxiety: categoryTotals.anxiety.count > 0 ? Math.round((categoryTotals.anxiety.sum / categoryTotals.anxiety.count) * 10) / 10 : 0,
+        compulsionUrge: (categoryTotals['compulsion'].count > 0 || categoryTotals['compulsion-urge'].count > 0) 
+          ? Math.round(((categoryTotals['compulsion'].sum + categoryTotals['compulsion-urge'].sum) / (categoryTotals['compulsion'].count + categoryTotals['compulsion-urge'].count)) * 10) / 10 
+          : 0,
+        control: categoryTotals.control.count > 0 ? Math.round((categoryTotals.control.sum / categoryTotals.control.count) * 10) / 10 : 0,
+        functioning: categoryTotals.functioning.count > 0 ? Math.round((categoryTotals.functioning.sum / categoryTotals.functioning.count) * 10) / 10 : 0,
+        sleep: categoryTotals.sleep.count > 0 ? Math.round((categoryTotals.sleep.sum / categoryTotals.sleep.count) * 10) / 10 : 0,
+        overallScore: totalResponses > 0 ? Math.round((totalScore / totalResponses) * 10) / 10 : 0,
+      };
+    }
+
     const response: WeeklySummaryResponse = {
       textSummary,
       totalCompulsions,
@@ -301,15 +376,18 @@ Keep tone positive, validating, and hopeful. Focus on patterns and small wins.`;
       insights: allInsights.slice(0, 5), // Show top 5 insights
       checkInsCount: checkIns.length,
       panicEpisodesCount: panicEvents.length,
+      moodLogsCount: moods.length,
+      checkInAverages,
     };
 
-    // Cache the response
+    // Cache the response with fingerprint
     summaryCache.set(cacheKey, {
       data: response,
       timestamp: now,
+      fingerprint: currentFingerprint,
     });
 
-    console.log(`[Summary API] Generated and cached weekly summary for user ${userId}`);
+    console.log(`[Summary API] Generated and cached weekly summary for user ${userId} (fingerprint: ${currentFingerprint})`);
 
     return NextResponse.json(response, {
       status: 200,

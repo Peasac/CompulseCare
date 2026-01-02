@@ -46,7 +46,43 @@ export async function GET(request: NextRequest) {
       .sort({ createdAt: -1 })
       .lean();
 
-    const formattedTargets = targets.map((target: any) => ({
+    // Auto-reset logic for daily/weekly targets
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const targetsToReset = targets.filter((target: any) => {
+      const targetDate = new Date(target.createdAt);
+      
+      // Reset daily targets if created before today
+      if (target.type === 'daily' && target.completed && targetDate < startOfToday) {
+        return true;
+      }
+      
+      // Reset weekly targets if created before this week
+      if (target.type === 'weekly' && target.completed && targetDate < startOfWeek) {
+        return true;
+      }
+      
+      return false;
+    });
+
+    // Reset completed status for targets that should reset
+    if (targetsToReset.length > 0) {
+      await Target.updateMany(
+        { _id: { $in: targetsToReset.map((t: any) => t._id) } },
+        { $set: { completed: false } }
+      );
+    }
+
+    // Refetch targets after reset
+    const updatedTargets = await Target.find({ userId } as any)
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const formattedTargets = updatedTargets.map((target: any) => ({
       id: target._id.toString(),
       _id: target._id.toString(),
       userId: target.userId,

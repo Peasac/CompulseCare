@@ -11,6 +11,12 @@ export const metadata: Metadata = {
   title: "CompulseCare - OCD & Compulsion Tracking",
   description: "Your compassionate companion for managing OCD and compulsive behaviors. Track, understand, and grow.",
   keywords: ["OCD", "mental health", "compulsion tracking", "anxiety", "wellness"],
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico' },
+    ],
+  },
 };
 
 export default function RootLayout({

@@ -144,7 +144,7 @@ export default function CheckInHistoryPage() {
             <CardHeader className="pb-3">
               <CardDescription>Average Score</CardDescription>
               <CardTitle className={`text-3xl ${getScoreColor(Number(getAverageScore()))}`}>
-                {getAverageScore()} / 10
+                {getAverageScore()} / 50
               </CardTitle>
             </CardHeader>
           </Card>

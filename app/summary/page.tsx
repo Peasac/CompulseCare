@@ -40,6 +40,15 @@ interface WeeklySummaryData {
   insights: string[];
   checkInsCount?: number;
   panicEpisodesCount?: number;
+  checkInAverages?: {
+    anxiety: number;
+    compulsionUrge: number;
+    control: number;
+    functioning: number;
+    sleep: number;
+    overallScore: number;
+  };
+  moodLogsCount?: number;
 }
 
 /**
@@ -331,18 +340,42 @@ const WeeklySummaryPage = () => {
                 </div>
               </Card>
 
-              {/* Block 2: What Helped */}
+              {/* Block 2: Weekly Summary */}
               <Card className="p-6 bg-white shadow-soft border-l-4 border-l-green-400 hover-lift">
                 <div className="flex flex-col h-full">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="p-2 bg-green-50 rounded-lg text-green-600">
                       <Heart className="w-5 h-5" />
                     </div>
-                    <h3 className="font-semibold text-gray-800">What Helped</h3>
+                    <h3 className="font-semibold text-gray-800">Weekly Summary</h3>
                   </div>
-                  <p className="text-sm text-gray-600 leading-relaxed flex-1">
-                    {summaryData.textSummary ? summaryData.textSummary.split('.')[0] + '.' : "Taking deep breaths before acting seemed to reduce anxiety intensity."}
-                  </p>
+                  <div className="text-sm text-gray-600 leading-relaxed flex-1">
+                    {(summaryData.checkInAverages || summaryData.moodLogsCount) ? (
+                      <p>
+                        {summaryData.moodLogsCount && summaryData.moodLogsCount > 0 && (
+                          <>You logged your mood <strong>{summaryData.moodLogsCount} time{summaryData.moodLogsCount !== 1 ? 's' : ''}</strong> this week{summaryData.moodAverage > 0 ? <>, averaging <strong>{summaryData.moodAverage}/10</strong></> : ''}. </>
+                        )}
+                        {summaryData.checkInAverages && summaryData.checkInsCount && summaryData.checkInsCount > 0 ? (
+                          <>
+                            From {summaryData.checkInsCount} check-in{summaryData.checkInsCount !== 1 ? 's' : ''}, 
+                            your anxiety averaged <strong>{summaryData.checkInAverages.anxiety}/10</strong>, 
+                            compulsion urges at <strong>{summaryData.checkInAverages.compulsionUrge}/10</strong>, 
+                            and you reported <strong>{summaryData.checkInAverages.control}/10</strong> sense of control. 
+                            Sleep quality: <strong>{summaryData.checkInAverages.sleep}/10</strong>.
+                            {summaryData.checkInAverages.control >= 6 ? " Great self-regulation this week!" : 
+                             summaryData.checkInAverages.control >= 4 ? " Keep building on your progress." : 
+                             " Consider practicing more coping strategies."}
+                          </>
+                        ) : (
+                          <>Complete daily check-ins to track anxiety, control, and sleep patterns.</>  
+                        )}
+                      </p>
+                    ) : (
+                      <p>
+                        {summaryData.textSummary || `This week you logged ${summaryData.totalCompulsions} compulsion${summaryData.totalCompulsions !== 1 ? 's' : ''} with "${summaryData.mostCommonTrigger}" as the primary trigger. Start using the mood tracker and daily check-ins to get personalized insights about your emotional patterns.`}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </Card>
 
@@ -507,15 +540,57 @@ const WeeklySummaryPage = () => {
                       {documentAnalysis}
                     </p>
 
-                    {/* Uploaded Files Pills */}
+                    {/* Uploaded Documents List */}
                     {uploadedDocuments.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-indigo-100/50">
-                        {uploadedDocuments.map((doc: any) => (
-                          <div key={doc._id} className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full border border-indigo-100 shadow-sm text-xs text-gray-600">
-                            <span>📄 {doc.fileName}</span>
-                            <button onClick={() => handleDeleteDocument(doc._id)} className="text-gray-400 hover:text-red-500 ml-1">×</button>
-                          </div>
-                        ))}
+                      <div className="mt-4 pt-4 border-t border-indigo-200">
+                        <h4 className="text-xs font-medium text-indigo-900 mb-2">
+                          Uploaded Documents ({uploadedDocuments.length})
+                        </h4>
+                        <div className="space-y-2">
+                          {uploadedDocuments.map((doc: any) => (
+                            <div key={doc._id || doc.fileName} className="flex items-center justify-between p-2 bg-white rounded border border-indigo-100">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-medium text-gray-800">{doc.fileName}</p>
+                                  {doc.fileUrl && (
+                                    <Button
+                                      onClick={() => window.open(doc.fileUrl, '_blank')}
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-xs h-6 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                    >
+                                      👁️ View
+                                    </Button>
+                                  )}
+                                </div>
+                                <p className="text-xs text-gray-500">
+                                  {new Date(doc.uploadDate).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div className="flex gap-2">
+                                {doc.ocrText && (
+                                  <Button
+                                    onClick={() => setSelectedDoc({ fileName: doc.fileName, ocrText: doc.ocrText, uploadDate: doc.uploadDate })}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-xs"
+                                  >
+                                    View OCR
+                                  </Button>
+                                )}
+                                <Button
+                                  onClick={() => handleDeleteDocument(doc._id)}
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled={deletingDocId === doc._id}
+                                  className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  {deletingDocId === doc._id ? "..." : "Delete"}
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -525,6 +600,82 @@ const WeeklySummaryPage = () => {
           </section>
 
         </main>
+
+        {/* OCR Text Modal */}
+        {selectedDoc && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedDoc(null)}>
+            <div className="bg-white rounded-lg p-6 max-w-3xl w-full max-h-[85vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4 pb-3 border-b">
+                <div>
+                  <h3 className="font-semibold text-lg">Extracted Text (OCR)</h3>
+                  <p className="text-xs text-gray-500 mt-1">{selectedDoc.fileName}</p>
+                </div>
+                <Button onClick={() => setSelectedDoc(null)} variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">✕</Button>
+              </div>
+              <pre className="text-sm bg-gray-50 p-5 rounded-lg whitespace-pre-wrap font-mono leading-relaxed border border-gray-200">
+                {selectedDoc.ocrText}
+              </pre>
+              <div className="flex gap-3 mt-5 pt-4 border-t">
+                <Button
+                  onClick={async () => {
+                    const jsPDF = (await import('jspdf')).default;
+                    const doc = new jsPDF();
+                    
+                    // Add title
+                    doc.setFontSize(16);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('OCR Document Extract', 20, 20);
+                    
+                    // Add metadata
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'normal');
+                    doc.setTextColor(100);
+                    doc.text(`File: ${selectedDoc.fileName}`, 20, 30);
+                    doc.text(`Extracted: ${new Date(selectedDoc.uploadDate).toLocaleDateString()}`, 20, 36);
+                    doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 20, 42);
+                    
+                    // Add divider
+                    doc.setDrawColor(200);
+                    doc.line(20, 48, 190, 48);
+                    
+                    // Add OCR text with proper wrapping
+                    doc.setFontSize(11);
+                    doc.setTextColor(0);
+                    const splitText = doc.splitTextToSize(selectedDoc.ocrText, 170);
+                    doc.text(splitText, 20, 56);
+                    
+                    // Save PDF
+                    const fileName = selectedDoc.fileName.replace(/\.[^/.]+$/, '') + '_OCR.pdf';
+                    doc.save(fileName);
+                    
+                    toast({
+                      title: "PDF generated",
+                      description: "OCR text exported as PDF",
+                    });
+                  }}
+                  variant="default"
+                  size="sm"
+                  className="bg-primary"
+                >
+                  📄 Export as PDF
+                </Button>
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedDoc.ocrText);
+                    toast({
+                      title: "Copied to clipboard",
+                      description: "OCR text copied successfully",
+                    });
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  📋 Copy Text
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </ProtectedRoute>
   );

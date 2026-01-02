@@ -13,8 +13,25 @@ import { generateCheckInReflection } from "@/lib/gemini";
  * No clinical labels or diagnoses
  */
 
-// Standard check-in questions
-export const CHECK_IN_QUESTIONS = [
+// In-memory cache for check-in reflections
+const checkInCache = new Map<string, { checkIns: any[]; reflection: string | null; timestamp: number; fingerprint: string }>();
+const CACHE_TTL = 2 * 60 * 60 * 1000; // 2 hours
+
+// Generate fingerprint from check-in data to detect changes
+function generateCheckInFingerprint(checkIns: any[]): string {
+  if (checkIns.length === 0) return "empty";
+  const latestTimestamp = checkIns[0]?.createdAt || new Date().toISOString();
+  return `${checkIns.length}-${latestTimestamp}`;
+}
+
+// Invalidate cache for a user
+function invalidateCache(userId: string) {
+  checkInCache.delete(`checkin_${userId}`);
+  console.log(`[CheckIn Cache] Invalidated cache for user ${userId}`);
+}
+
+// Standard check-in questions (not exported - Next.js routes can only export HTTP methods)
+const CHECK_IN_QUESTIONS = [
   { id: 'anxiety', question: 'How would you rate your overall anxiety today?', category: 'anxiety' },
   { id: 'compulsion-urge', question: 'How strong were your compulsion urges today?', category: 'compulsion-urge' },
   { id: 'control', question: 'How much control did you feel over compulsions today?', category: 'control' },
@@ -84,6 +101,9 @@ export async function POST(request: NextRequest) {
 
     console.log(`[CheckIn API] New check-in created for user ${userId}: ${checkIn._id}`);
 
+    // Invalidate cache after new check-in
+    invalidateCache(userId);
+
     return NextResponse.json({
       checkIn: {
         id: checkIn._id.toString(),
@@ -148,6 +168,28 @@ export async function GET(request: NextRequest) {
       createdAt: checkIn.createdAt.toISOString(),
     }));
 
+    // Generate data fingerprint
+    const currentFingerprint = generateCheckInFingerprint(formattedCheckIns);
+
+    // Check cache with fingerprint validation
+    const cacheKey = `checkin_${userId}`;
+    const cached = checkInCache.get(cacheKey);
+    const now = Date.now();
+
+    if (withReflection && cached && now - cached.timestamp < CACHE_TTL && cached.fingerprint === currentFingerprint) {
+      console.log(`[CheckIn API] Returning cached reflection for user ${userId} (fingerprint match)`);
+      return NextResponse.json({
+        checkIns: cached.checkIns,
+        count: cached.checkIns.length,
+        reflection: cached.reflection,
+      }, { 
+        status: 200,
+        headers: { "X-Cache": "HIT" },
+      });
+    } else if (cached && cached.fingerprint !== currentFingerprint) {
+      console.log(`[CheckIn API] Cache invalidated - data changed (${cached.fingerprint} → ${currentFingerprint})`);
+    }
+
     // Generate LLM reflection if requested and enough data
     let reflection = null;
     if (withReflection && checkIns.length >= 2) {
@@ -159,11 +201,25 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Cache the response if reflection was generated
+    if (withReflection) {
+      checkInCache.set(cacheKey, {
+        checkIns: formattedCheckIns,
+        reflection,
+        timestamp: now,
+        fingerprint: currentFingerprint,
+      });
+      console.log(`[CheckIn API] Cached reflection for user ${userId} (fingerprint: ${currentFingerprint})`);
+    }
+
     return NextResponse.json({
       checkIns: formattedCheckIns,
       count: formattedCheckIns.length,
       reflection,
-    }, { status: 200 });
+    }, { 
+      status: 200,
+      headers: { "X-Cache": withReflection ? "MISS" : "N/A" },
+    });
 
   } catch (error) {
     console.error("[CheckIn API GET] Error:", error);

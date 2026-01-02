@@ -167,7 +167,7 @@ export default function DashboardPage() {
             {/* Conditionally Render Widget with Fade Effect */}
             <div className="animate-fade-in">
               {targetView === 'daily' ? (
-                <DailyTargetsWidget streak={dashboardData?.mood?.stats?.streak ?? 0} />
+                <DailyTargetsWidget />
               ) : (
                 <WeeklyTargetsWidget />
               )}
