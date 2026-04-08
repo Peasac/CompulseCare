@@ -230,8 +230,8 @@ const WeeklySummaryPage = () => {
   if (isLoading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-[#F5F6FA]">
-          <header className="sticky top-0 bg-white border-b border-gray-200 shadow-sm z-10">
+        <div className="min-h-screen bg-background">
+          <header className="sticky top-0 bg-card border-b border-border shadow-sm z-10">
             <div className="container mx-auto px-4 py-4 max-w-6xl">
               <div className="flex items-center justify-between">
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
@@ -254,8 +254,8 @@ const WeeklySummaryPage = () => {
   if (error || !summaryData) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-[#F5F6FA]">
-          <header className="sticky top-0 bg-white border-b border-gray-200 shadow-sm z-10">
+        <div className="min-h-screen bg-background">
+          <header className="sticky top-0 bg-card border-b border-border shadow-sm z-10">
             <div className="container mx-auto px-4 py-4">
               <Button variant="ghost" size="icon" onClick={() => router.back()}>
                 <ArrowLeft className="w-5 h-5" />
@@ -263,11 +263,11 @@ const WeeklySummaryPage = () => {
             </div>
           </header>
           <div className="container mx-auto px-4 py-8 max-w-2xl">
-            <Card className="p-8 text-center">
-              <p className="text-red-600">{error || "No data available"}</p>
+            <Card className="p-8 text-center bg-card border-border">
+              <p className="text-panic">{error || "No data available"}</p>
               <Button
                 onClick={fetchWeeklySummary}
-                className="mt-4 bg-[#2563EB] hover:bg-[#1D4ED8]"
+                className="mt-4 bg-primary hover:bg-primary/90 text-background"
               >
                 Try Again
               </Button>
@@ -280,9 +280,9 @@ const WeeklySummaryPage = () => {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-[#F5F6FA]">
+      <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+        <header className="bg-card border-b border-border shadow-sm sticky top-0 z-10">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -295,8 +295,8 @@ const WeeklySummaryPage = () => {
                   <ArrowLeft className="w-5 h-5" />
                 </Button>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-800">Weekly Insights</h1>
-                  <p className="text-sm text-gray-500 flex items-center gap-1">
+                  <h1 className="text-xl font-bold text-foreground">Weekly Insights</h1>
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
                     Last 7 days
                   </p>
@@ -320,36 +320,36 @@ const WeeklySummaryPage = () => {
           {/* 1. AI WEEKLY INSIGHTS - 3 Block Focus */}
           <section className="animate-fade-in">
             <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-5 h-5 text-indigo-500" />
-              <h2 className="text-lg font-medium text-gray-800">AI Reflections</h2>
+              <Sparkles className="w-5 h-5 text-primary" />
+              <h2 className="text-lg font-medium text-foreground">AI Reflections</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Block 1: Pattern Detected */}
-              <Card className="p-6 bg-white shadow-soft border-l-4 border-l-blue-400 hover-lift">
+              <Card className="p-6 bg-card shadow-soft border-l-4 border-l-info hover-lift">
                 <div className="flex flex-col h-full">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                    <div className="p-2 bg-info/20 rounded-lg text-info">
                       <Sparkles className="w-5 h-5" />
                     </div>
-                    <h3 className="font-semibold text-gray-800">Pattern Detected</h3>
+                    <h3 className="font-semibold text-foreground">Pattern Detected</h3>
                   </div>
-                  <p className="text-sm text-gray-600 leading-relaxed flex-1">
+                  <p className="text-sm text-muted-foreground leading-relaxed flex-1">
                     {summaryData.insights && summaryData.insights[0] ? summaryData.insights[0] : "You tend to check more frequently during the evening hours."}
                   </p>
                 </div>
               </Card>
 
               {/* Block 2: Weekly Summary */}
-              <Card className="p-6 bg-white shadow-soft border-l-4 border-l-green-400 hover-lift">
+              <Card className="p-6 bg-card shadow-soft border-l-4 border-l-success hover-lift">
                 <div className="flex flex-col h-full">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 bg-green-50 rounded-lg text-green-600">
+                    <div className="p-2 bg-success/20 rounded-lg text-success">
                       <Heart className="w-5 h-5" />
                     </div>
-                    <h3 className="font-semibold text-gray-800">Weekly Summary</h3>
+                    <h3 className="font-semibold text-foreground">Weekly Summary</h3>
                   </div>
-                  <div className="text-sm text-gray-600 leading-relaxed flex-1">
+                  <div className="text-sm text-muted-foreground leading-relaxed flex-1">
                     {(summaryData.checkInAverages || summaryData.moodLogsCount) ? (
                       <p>
                         {summaryData.moodLogsCount && summaryData.moodLogsCount > 0 && (
@@ -380,15 +380,15 @@ const WeeklySummaryPage = () => {
               </Card>
 
               {/* Block 3: Gentle Suggestion */}
-              <Card className="p-6 bg-white shadow-soft border-l-4 border-l-purple-400 hover-lift">
+              <Card className="p-6 bg-card shadow-soft border-l-4 border-l-primary hover-lift">
                 <div className="flex flex-col h-full">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
+                    <div className="p-2 bg-primary/20 rounded-lg text-primary">
                       <Lightbulb className="w-5 h-5" />
                     </div>
-                    <h3 className="font-semibold text-gray-800">Suggestion</h3>
+                    <h3 className="font-semibold text-foreground">Suggestion</h3>
                   </div>
-                  <p className="text-sm text-gray-600 leading-relaxed flex-1">
+                  <p className="text-sm text-muted-foreground leading-relaxed flex-1">
                     {summaryData.insights && summaryData.insights.length > 0 ? summaryData.insights[summaryData.insights.length - 1] : "Try tracking your mood right after a compulsion next time."}
                   </p>
                 </div>
@@ -398,13 +398,13 @@ const WeeklySummaryPage = () => {
 
           {/* 2. DATA & TRENDS SECTION */}
           <section className="animate-fade-in delay-100">
-            <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-4 flex items-center gap-2">
-              <span className="w-4 h-[1px] bg-gray-300"></span> Trends <span className="w-full h-[1px] bg-gray-200"></span>
+            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-4 flex items-center gap-2">
+              <span className="w-4 h-[1px] bg-border"></span> Trends <span className="w-full h-[1px] bg-border"></span>
             </h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Compulsions Chart */}
-              <Card className="p-6 shadow-soft bg-white border-gray-100">
-                <h4 className="text-sm font-medium text-gray-700 mb-6">
+              <Card className="p-6 shadow-soft bg-card border-border">
+                <h4 className="text-sm font-medium text-foreground mb-6">
                   Daily Log Frequency
                 </h4>
                 <div className="h-[240px] w-full">
@@ -447,8 +447,8 @@ const WeeklySummaryPage = () => {
               </Card>
 
               {/* Time Spent Chart */}
-              <Card className="p-6 shadow-soft bg-white border-gray-100">
-                <h4 className="text-sm font-medium text-gray-700 mb-6">
+              <Card className="p-6 shadow-soft bg-card border-border">
+                <h4 className="text-sm font-medium text-foreground mb-6">
                   Total Time Spent (min)
                 </h4>
                 <div className="h-[240px] w-full">
@@ -496,21 +496,21 @@ const WeeklySummaryPage = () => {
           {/* 3. KEY METRICS CARDS */}
           <section className="animate-fade-in delay-200">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="p-4 bg-blue-50/50 border-blue-100 border text-center hover:bg-blue-50 transition-colors">
-                <div className="text-xs text-blue-600 font-medium mb-1 uppercase tracking-wide">Total Logs</div>
-                <div className="text-3xl font-bold text-blue-900">{summaryData.totalCompulsions}</div>
+              <Card className="p-4 bg-info/10 border-info/20 border text-center hover:bg-info/20 transition-colors">
+                <div className="text-xs text-info font-medium mb-1 uppercase tracking-wide">Total Logs</div>
+                <div className="text-3xl font-bold text-info">{summaryData.totalCompulsions}</div>
               </Card>
-              <Card className="p-4 bg-purple-50/50 border-purple-100 border text-center hover:bg-purple-50 transition-colors">
-                <div className="text-xs text-purple-600 font-medium mb-1 uppercase tracking-wide">Avg Time</div>
-                <div className="text-3xl font-bold text-purple-900">{summaryData.avgTimeSpent}<span className="text-sm font-normal ml-1">min</span></div>
+              <Card className="p-4 bg-primary/10 border-primary/20 border text-center hover:bg-primary/20 transition-colors">
+                <div className="text-xs text-primary font-medium mb-1 uppercase tracking-wide">Avg Time</div>
+                <div className="text-3xl font-bold text-primary">{summaryData.avgTimeSpent}<span className="text-sm font-normal ml-1">min</span></div>
               </Card>
-              <Card className="p-4 bg-orange-50/50 border-orange-100 border text-center hover:bg-orange-50 transition-colors">
-                <div className="text-xs text-orange-600 font-medium mb-1 uppercase tracking-wide">Avg Anxiety</div>
-                <div className="text-3xl font-bold text-orange-900">{summaryData.moodAverage || "-"}<span className="text-sm font-normal ml-1">/10</span></div>
+              <Card className="p-4 bg-warning/10 border-warning/20 border text-center hover:bg-warning/20 transition-colors">
+                <div className="text-xs text-warning font-medium mb-1 uppercase tracking-wide">Avg Anxiety</div>
+                <div className="text-3xl font-bold text-warning">{summaryData.moodAverage || "-"}<span className="text-sm font-normal ml-1">/10</span></div>
               </Card>
-              <Card className="p-4 bg-green-50/50 border-green-100 border text-center hover:bg-green-50 transition-colors">
-                <div className="text-xs text-green-600 font-medium mb-1 uppercase tracking-wide">Check-ins</div>
-                <div className="text-3xl font-bold text-green-900">{summaryData.checkInsCount || 0}</div>
+              <Card className="p-4 bg-success/10 border-success/20 border text-center hover:bg-success/20 transition-colors">
+                <div className="text-xs text-success font-medium mb-1 uppercase tracking-wide">Check-ins</div>
+                <div className="text-3xl font-bold text-success">{summaryData.checkInsCount || 0}</div>
               </Card>
             </div>
           </section>
@@ -518,8 +518,8 @@ const WeeklySummaryPage = () => {
           {/* 4. DOCUMENT & OCR SECTION */}
           <section className="animate-fade-in delay-300">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-gray-800 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-gray-400" />
+              <h3 className="text-lg font-medium text-foreground flex items-center gap-2">
+                <FileText className="w-5 h-5 text-muted-foreground" />
                 Bring external context into your journey
               </h3>
             </div>
@@ -529,41 +529,41 @@ const WeeklySummaryPage = () => {
 
             {/* Analysis Result */}
             {documentAnalysis && (
-              <Card className="mt-6 p-6 shadow-soft bg-gradient-to-br from-indigo-50/50 to-white border-indigo-100 group">
+              <Card className="mt-6 p-6 shadow-soft bg-gradient-to-br from-info/20 to-card border-info/30 group">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                    <Sparkles className="w-5 h-5 text-indigo-600" />
+                  <div className="w-10 h-10 rounded-full bg-info/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <Sparkles className="w-5 h-5 text-info" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-base font-semibold text-indigo-900 mb-1">AI Document Summary</h4>
-                    <p className="text-sm text-gray-600 leading-relaxed mb-4">
+                    <h4 className="text-base font-semibold text-info mb-1">AI Document Summary</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                       {documentAnalysis}
                     </p>
 
                     {/* Uploaded Documents List */}
                     {uploadedDocuments.length > 0 && (
-                      <div className="mt-4 pt-4 border-t border-indigo-200">
-                        <h4 className="text-xs font-medium text-indigo-900 mb-2">
+                      <div className="mt-4 pt-4 border-t border-info/30">
+                        <h4 className="text-xs font-medium text-info mb-2">
                           Uploaded Documents ({uploadedDocuments.length})
                         </h4>
                         <div className="space-y-2">
                           {uploadedDocuments.map((doc: any) => (
-                            <div key={doc._id || doc.fileName} className="flex items-center justify-between p-2 bg-white rounded border border-indigo-100">
+                            <div key={doc._id || doc.fileName} className="flex items-center justify-between p-2 bg-card rounded border border-info/30">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <p className="text-sm font-medium text-gray-800">{doc.fileName}</p>
+                                  <p className="text-sm font-medium text-foreground">{doc.fileName}</p>
                                   {doc.fileUrl && (
                                     <Button
                                       onClick={() => window.open(doc.fileUrl, '_blank')}
                                       variant="ghost"
                                       size="sm"
-                                      className="text-xs h-6 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                      className="text-xs h-6 px-2 text-info hover:text-info/80 hover:bg-info/10"
                                     >
                                       👁️ View
                                     </Button>
                                   )}
                                 </div>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-muted-foreground">
                                   {new Date(doc.uploadDate).toLocaleDateString()}
                                 </p>
                               </div>
@@ -583,7 +583,7 @@ const WeeklySummaryPage = () => {
                                   variant="ghost"
                                   size="sm"
                                   disabled={deletingDocId === doc._id}
-                                  className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  className="text-xs text-panic hover:text-panic/80 hover:bg-panic/10"
                                 >
                                   {deletingDocId === doc._id ? "..." : "Delete"}
                                 </Button>
@@ -604,18 +604,18 @@ const WeeklySummaryPage = () => {
         {/* OCR Text Modal */}
         {selectedDoc && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedDoc(null)}>
-            <div className="bg-white rounded-lg p-6 max-w-3xl w-full max-h-[85vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-4 pb-3 border-b">
+            <div className="bg-card rounded-lg p-6 max-w-3xl w-full max-h-[85vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
                 <div>
-                  <h3 className="font-semibold text-lg">Extracted Text (OCR)</h3>
-                  <p className="text-xs text-gray-500 mt-1">{selectedDoc.fileName}</p>
+                  <h3 className="font-semibold text-lg text-foreground">Extracted Text (OCR)</h3>
+                  <p className="text-xs text-muted-foreground mt-1">{selectedDoc.fileName}</p>
                 </div>
-                <Button onClick={() => setSelectedDoc(null)} variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">✕</Button>
+                <Button onClick={() => setSelectedDoc(null)} variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">✕</Button>
               </div>
-              <pre className="text-sm bg-gray-50 p-5 rounded-lg whitespace-pre-wrap font-mono leading-relaxed border border-gray-200">
+              <pre className="text-sm bg-section p-5 rounded-lg whitespace-pre-wrap font-mono leading-relaxed border border-border text-foreground">
                 {selectedDoc.ocrText}
               </pre>
-              <div className="flex gap-3 mt-5 pt-4 border-t">
+              <div className="flex gap-3 mt-5 pt-4 border-t border-border">
                 <Button
                   onClick={async () => {
                     const jsPDF = (await import('jspdf')).default;

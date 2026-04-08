@@ -143,8 +143,7 @@ const PanicModePage = () => {
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-gray-50 overflow-y-auto"
-      style={{ backgroundColor: '#F9FAFB' }}
+      className="fixed inset-0 z-50 bg-panic/20 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="panic-mode-title"
@@ -265,7 +264,7 @@ const PanicModePage = () => {
               {/* PRIMARY: Do another breath */}
               <Button
                 onClick={handleDoAnotherBreath}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-16 text-lg font-medium shadow-soft transition-calm"
+                className="w-full bg-primary hover:bg-primary/90 text-background h-16 text-lg font-medium shadow-soft transition-calm"
               >
                 <RotateCcw className="w-5 h-5 mr-2" />
                 Breathe again

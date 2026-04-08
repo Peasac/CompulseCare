@@ -199,9 +199,9 @@ const LoggerPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F6FA]">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+      <header className="bg-card border-b border-border shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -214,8 +214,8 @@ const LoggerPage = () => {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-xl font-bold text-gray-800">Compulsion Logger</h1>
-                <p className="text-sm text-gray-500">Track and analyze your patterns</p>
+                <h1 className="text-xl font-bold text-foreground">Compulsion Logger</h1>
+                <p className="text-sm text-muted-foreground">Track and analyze your patterns</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -223,7 +223,7 @@ const LoggerPage = () => {
                 variant="outline"
                 size="sm"
                 onClick={handleExport}
-                className="gap-2 border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-900 bg-white"
+                className="gap-2 border-border text-foreground hover:bg-section hover:text-foreground bg-card"
               >
                 <Download className="w-4 h-4" />
                 <span className="hidden sm:inline">Export</span>
@@ -231,7 +231,7 @@ const LoggerPage = () => {
               <Button
                 size="sm"
                 onClick={() => router.push("/journal")}
-                className="gap-2 bg-blue-500 hover:bg-blue-600 text-white"
+                className="gap-2 bg-primary hover:bg-primary/90 text-background"
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">New Entry</span>
@@ -244,69 +244,69 @@ const LoggerPage = () => {
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card className="p-4 bg-white shadow-soft border-gray-100 hover-lift">
+          <Card className="p-4 bg-card shadow-soft border-border hover-lift">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500 font-medium mb-1 uppercase tracking-wide">Entries</p>
-                <p className="text-2xl font-semibold text-gray-800">{filteredLogs.length}</p>
+                <p className="text-xs text-muted-foreground font-medium mb-1 uppercase tracking-wide">Entries</p>
+                <p className="text-2xl font-semibold text-foreground">{filteredLogs.length}</p>
               </div>
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <Clock className="w-4 h-4 text-blue-500" />
+              <div className="p-3 bg-info/10 rounded-lg">
+                <Clock className="w-4 h-4 text-info" />
               </div>
             </div>
           </Card>
 
-          <Card className="p-4 bg-white shadow-sm border-gray-200">
+          <Card className="p-4 bg-card shadow-sm border-border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-600 font-medium mb-1">Total Time</p>
-                <p className="text-2xl font-bold text-gray-900">{getTotalTime()}m</p>
+                <p className="text-xs text-muted-foreground font-medium mb-1">Total Time</p>
+                <p className="text-2xl font-bold text-foreground">{getTotalTime()}m</p>
               </div>
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-purple-600" />
+              <div className="p-3 bg-primary/20 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-primary" />
               </div>
             </div>
           </Card>
 
-          <Card className="p-4 bg-white shadow-sm border-gray-200">
+          <Card className="p-4 bg-card shadow-sm border-border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-600 font-medium mb-1">Avg Time/Entry</p>
-                <p className="text-2xl font-bold text-gray-900">{getAverageTime()}m</p>
+                <p className="text-xs text-muted-foreground font-medium mb-1">Avg Time/Entry</p>
+                <p className="text-2xl font-bold text-foreground">{getAverageTime()}m</p>
               </div>
-              <div className="p-3 bg-green-100 rounded-lg">
-                <TrendingDown className="w-5 h-5 text-green-600" />
+              <div className="p-3 bg-success/20 rounded-lg">
+                <TrendingDown className="w-5 h-5 text-success" />
               </div>
             </div>
           </Card>
 
-          <Card className="p-4 bg-white shadow-sm border-gray-200">
+          <Card className="p-4 bg-card shadow-sm border-border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-600 font-medium mb-1">Most Common</p>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-xs text-muted-foreground font-medium mb-1">Most Common</p>
+                <p className="text-sm font-semibold text-foreground">
                   {getCategoryBreakdown()[0]?.[0] || "N/A"}
                 </p>
               </div>
-              <div className="p-3 bg-orange-100 rounded-lg">
-                <Filter className="w-5 h-5 text-orange-600" />
+              <div className="p-3 bg-warning/20 rounded-lg">
+                <Filter className="w-5 h-5 text-warning" />
               </div>
             </div>
           </Card>
         </div>
 
         {/* Filters */}
-        <Card className="p-4 mb-6 bg-white shadow-sm border-gray-200">
+        <Card className="p-4 mb-6 bg-card shadow-sm border-border">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search activities..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
+                  className="pl-10 bg-card border-border text-foreground placeholder:text-placeholder"
                 />
               </div>
             </div>
@@ -319,8 +319,8 @@ const LoggerPage = () => {
                   variant={selectedCategory === cat ? "default" : "outline"}
                   className={`cursor-pointer font-medium ${
                     selectedCategory === cat
-                      ? "bg-blue-600 text-white hover:bg-blue-700 border-blue-600"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                      ? "bg-info text-background hover:bg-info/90 border-info"
+                      : "bg-card text-muted-foreground border-border hover:bg-containerBg"
                   }`}
                   onClick={() => setSelectedCategory(cat)}
                 >
@@ -333,7 +333,7 @@ const LoggerPage = () => {
             <select
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 font-medium"
+              className="px-3 py-2 border border-border rounded-md text-sm bg-card text-foreground font-medium"
             >
               <option value="today">Today</option>
               <option value="7days">Last 7 days</option>
@@ -344,46 +344,46 @@ const LoggerPage = () => {
         </Card>
 
         {/* Table */}
-        <Card className="bg-white shadow-sm border-gray-200">
+        <Card className="bg-card shadow-sm border-border">
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="[&>tr]:bg-gray-100 border-b-2 border-gray-200">
-                <TableRow className="border-gray-200 bg-gray-100">
-                  <TableHead className="w-[40%] text-gray-900 font-semibold bg-gray-100">Activity</TableHead>
-                  <TableHead className="text-gray-900 font-semibold bg-gray-100">Category</TableHead>
-                  <TableHead className="text-gray-900 font-semibold bg-gray-100">Time Spent</TableHead>
-                  <TableHead className="text-gray-900 font-semibold bg-gray-100">Date</TableHead>
-                  <TableHead className="text-right text-gray-900 font-semibold bg-gray-100">Actions</TableHead>
+              <TableHeader className="[&>tr]:bg-section border-b-2 border-border">
+                <TableRow className="border-border bg-section">
+                  <TableHead className="w-[40%] text-foreground font-semibold bg-section">Activity</TableHead>
+                  <TableHead className="text-foreground font-semibold bg-section">Category</TableHead>
+                  <TableHead className="text-foreground font-semibold bg-section">Time Spent</TableHead>
+                  <TableHead className="text-foreground font-semibold bg-section">Date</TableHead>
+                  <TableHead className="text-right text-foreground font-semibold bg-section">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       Loading...
                     </TableCell>
                   </TableRow>
                 ) : filteredLogs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       No entries found. Start tracking your compulsions!
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredLogs.map((log) => (
-                    <TableRow key={log.id} className="hover:bg-blue-50 border-gray-200">
-                      <TableCell className="font-medium text-gray-900">
+                    <TableRow key={log.id} className="hover:bg-info/10 border-border">
+                      <TableCell className="font-medium text-foreground">
                         {log.activity || "No description"}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200 font-medium">
+                        <Badge variant="secondary" className="bg-info/20 text-info border-info/30 font-medium">
                           {log.category || "Other"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-semibold text-gray-900">
+                      <TableCell className="font-semibold text-foreground">
                         {log.timeSpent}m
                       </TableCell>
-                      <TableCell className="text-sm text-gray-700">
+                      <TableCell className="text-sm text-muted-foreground">
                         {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}
                       </TableCell>
                       <TableCell className="text-right">
@@ -391,7 +391,7 @@ const LoggerPage = () => {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDelete(log.id)}
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          className="text-panic hover:text-panic/80 hover:bg-panic/10"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -406,21 +406,21 @@ const LoggerPage = () => {
 
         {/* Category Breakdown */}
         {filteredLogs.length > 0 && (
-          <Card className="p-6 mt-6 bg-white shadow-sm border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Category Breakdown</h3>
+          <Card className="p-6 mt-6 bg-card shadow-sm border-border">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Category Breakdown</h3>
             <div className="space-y-3">
               {getCategoryBreakdown().map(([category, count]) => (
                 <div key={category} className="flex items-center gap-4">
-                  <span className="text-sm font-medium text-gray-900 w-24">{category}</span>
-                  <div className="flex-1 bg-gray-200 rounded-full h-3">
+                  <span className="text-sm font-medium text-foreground w-24">{category}</span>
+                  <div className="flex-1 bg-section rounded-full h-3">
                     <div
-                      className="bg-blue-600 h-3 rounded-full transition-all"
+                      className="bg-primary h-3 rounded-full transition-all"
                       style={{
                         width: `${(count / filteredLogs.length) * 100}%`,
                       }}
                     />
                   </div>
-                  <span className="text-sm font-semibold text-gray-900 w-16 text-right">
+                  <span className="text-sm font-semibold text-foreground w-16 text-right">
                     {count} ({Math.round((count / filteredLogs.length) * 100)}%)
                   </span>
                 </div>
