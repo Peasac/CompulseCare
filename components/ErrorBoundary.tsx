@@ -44,21 +44,21 @@ class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <Card className="max-w-md w-full p-6 text-center">
-            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <Card className="max-w-md w-full p-6 text-center shadow-soft border-border">
+            <AlertCircle className="w-12 h-12 text-panic mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-foreground mb-2">
               Something went wrong
             </h2>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               We encountered an unexpected error. Your data is safe.
             </p>
             {this.state.error && (
               <details className="text-left mb-4">
-                <summary className="text-xs text-gray-500 cursor-pointer mb-2">
+                <summary className="text-xs text-muted-foreground cursor-pointer mb-2">
                   Error details
                 </summary>
-                <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto max-h-32">
+                <pre className="text-xs bg-muted p-2 rounded overflow-auto max-h-32">
                   {this.state.error.message}
                 </pre>
               </details>

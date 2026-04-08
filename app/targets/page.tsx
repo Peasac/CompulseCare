@@ -579,14 +579,14 @@ const TargetsPage = () => {
       <main className="container mx-auto px-4 py-6 max-w-3xl">
         {/* AI Suggestions Section */}
         {showSuggestions && suggestions.length > 0 && (
-          <Card className="p-4 mb-6 bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+          <Card className="p-4 mb-6 bg-gradient-to-br from-primary/10 to-info/10 border-primary/20">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-purple-900">🎯 AI Suggested Targets</h3>
+              <h3 className="text-sm font-semibold text-primary">🎯 AI Suggested Targets</h3>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowSuggestions(false)}
-                className="text-purple-600 hover:text-purple-700"
+                className="text-primary hover:text-primary/80"
               >
                 ✕
               </Button>
@@ -595,13 +595,13 @@ const TargetsPage = () => {
               {suggestions.map((suggestion, idx) => (
                 <div
                   key={idx}
-                  className="p-3 bg-white rounded-lg border border-purple-200 shadow-sm"
+                  className="p-3 bg-card rounded-lg border border-primary/20 shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
-                      <h4 className="text-sm font-medium text-gray-900">{suggestion.title}</h4>
-                      <p className="text-xs text-gray-600 mt-1">{suggestion.description}</p>
-                      <p className="text-xs text-purple-600 mt-2 italic">
+                      <h4 className="text-sm font-medium text-foreground">{suggestion.title}</h4>
+                      <p className="text-xs text-muted-foreground mt-1">{suggestion.description}</p>
+                      <p className="text-xs text-primary mt-2 italic">
                         💡 {suggestion.reasoning}
                       </p>
                     </div>
@@ -661,7 +661,7 @@ const TargetsPage = () => {
 
         {/* Motivational Progress Card */}
         {(dailyTargets.length > 0 || weeklyTargets.length > 0) && (
-          <Card className="p-5 mb-6 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+          <Card className="p-5 mb-6 bg-gradient-to-br from-success/10 to-success/5 border-success/20">
             <div className="flex items-start gap-3">
               <div className="text-2xl">
                 {completedDaily + completedWeekly === dailyTargets.length + weeklyTargets.length 
@@ -671,14 +671,14 @@ const TargetsPage = () => {
                     : "🎯"}
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-semibold text-green-900 mb-1">
+                <h3 className="text-sm font-semibold text-success mb-1">
                   {completedDaily + completedWeekly === dailyTargets.length + weeklyTargets.length
                     ? "Amazing work! All targets completed!"
                     : completedDaily + completedWeekly > 0
                       ? "Great progress! Keep going!"
                       : "Ready to start? Pick a target to begin!"}
                 </h3>
-                <p className="text-xs text-green-700">
+                <p className="text-xs text-success/80">
                   {completedDaily + completedWeekly === dailyTargets.length + weeklyTargets.length
                     ? "You've completed all your targets. Consider setting new ones to maintain momentum."
                     : completedDaily + completedWeekly > 0
@@ -705,7 +705,7 @@ const TargetsPage = () => {
               size="sm"
               onClick={() => handleGetSuggestions('daily')}
               disabled={loadingSuggestions}
-              className="w-full gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 mb-4"
+              className="w-full gap-2 bg-info hover:bg-info/90 text-background mb-4"
             >
               {loadingSuggestions ? (
                 <>
@@ -753,7 +753,7 @@ const TargetsPage = () => {
               size="sm"
               onClick={() => handleGetSuggestions('weekly')}
               disabled={loadingSuggestions}
-              className="w-full gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 mb-4"
+              className="w-full gap-2 bg-primary hover:bg-primary/90 text-background mb-4"
             >
               {loadingSuggestions ? (
                 <>
@@ -775,7 +775,7 @@ const TargetsPage = () => {
                     setNewTarget({ ...newTarget, type: "weekly" });
                     setShowAddModal(true);
                   }}
-                  className="mt-4 bg-success hover:bg-success/90 text-success-foreground"
+                  className="mt-4 bg-success hover:bg-success/90 text-background"
                 >
                   Create Your First Target
                 </Button>
@@ -843,7 +843,7 @@ const TargetsPage = () => {
                     className={`flex-1 p-3 text-sm rounded-md border transition-calm ${
                       newTarget.type === "daily"
                         ? "bg-primary/10 border-primary text-primary font-medium"
-                        : "bg-card border-border text-muted-foreground hover:bg-muted"
+                        : "bg-card border-border text-muted-foreground hover:bg-containerBg"
                     }`}
                   >
                     Daily
@@ -852,8 +852,8 @@ const TargetsPage = () => {
                     onClick={() => setNewTarget({ ...newTarget, type: "weekly" })}
                     className={`flex-1 p-3 text-sm rounded-md border transition-calm ${
                       newTarget.type === "weekly"
-                        ? "bg-success/10 border-success text-success-foreground font-medium"
-                        : "bg-card border-border text-muted-foreground hover:bg-muted"
+                        ? "bg-success/10 border-success text-success font-medium"
+                        : "bg-card border-border text-muted-foreground hover:bg-containerBg"
                     }`}
                   >
                     Weekly

@@ -51,7 +51,7 @@ export default function CheckInHistoryPage() {
 
   const fetchCheckIns = async (includeReflection = true) => {
     if (!user) return;
-    
+
     setIsLoading(true);
     if (includeReflection) {
       setLoadingReflection(true);
@@ -87,19 +87,19 @@ export default function CheckInHistoryPage() {
 
   const getScoreColor = (score: number, maxScore = 50) => {
     const percentage = (score / maxScore) * 100;
-    if (percentage < 30) return "text-green-600";
-    if (percentage < 60) return "text-yellow-600";
-    return "text-red-600";
+    if (percentage < 30) return "text-success";
+    if (percentage < 60) return "text-warning";
+    return "text-panic";
   };
 
   const getTrendIcon = () => {
     if (checkIns.length < 2) return <Minus className="h-5 w-5" />;
     const recent = checkIns.slice(0, 5).reduce((sum, c) => sum + c.totalScore, 0) / Math.min(5, checkIns.length);
     const older = checkIns.slice(5).reduce((sum, c) => sum + c.totalScore, 0) / checkIns.slice(5).length;
-    
-    if (recent > older) return <TrendingUp className="h-5 w-5 text-red-500" />;
-    if (recent < older) return <TrendingDown className="h-5 w-5 text-green-500" />;
-    return <Minus className="h-5 w-5 text-gray-500" />;
+
+    if (recent > older) return <TrendingUp className="h-5 w-5 text-panic" />;
+    if (recent < older) return <TrendingDown className="h-5 w-5 text-success" />;
+    return <Minus className="h-5 w-5 text-muted-foreground" />;
   };
 
   const getAverageScore = () => {
@@ -121,14 +121,14 @@ export default function CheckInHistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="bg-card border-b border-border sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold">Check-In History</h1>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {checkIns.length} check-ins recorded
               </p>
             </div>
@@ -153,7 +153,7 @@ export default function CheckInHistoryPage() {
               <CardDescription>Trend</CardDescription>
               <div className="flex items-center gap-2 pt-2">
                 {getTrendIcon()}
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-muted-foreground">
                   {checkIns.length < 2 ? "Need more data" : checkIns.slice(0, 5).reduce((sum, c) => sum + c.totalScore, 0) / Math.min(5, checkIns.length) < checkIns.slice(5).reduce((sum, c) => sum + c.totalScore, 0) / checkIns.slice(5).length ? "Improving" : "Higher"}
                 </span>
               </div>
@@ -163,10 +163,10 @@ export default function CheckInHistoryPage() {
 
         {/* AI Reflection */}
         {checkIns.length >= 2 && (
-          <Card className="border-blue-200 bg-blue-50">
+          <Card className="border-info/30 bg-info/10">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-blue-600" />
+                <Sparkles className="h-5 w-5 text-info" />
                 <CardTitle className="text-lg">AI Trend Analysis</CardTitle>
               </div>
               <CardDescription>
@@ -175,14 +175,14 @@ export default function CheckInHistoryPage() {
             </CardHeader>
             <CardContent>
               {loadingReflection ? (
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span>Analyzing trends...</span>
                 </div>
               ) : reflection ? (
-                <p className="text-sm text-gray-800 leading-relaxed">{reflection}</p>
+                <p className="text-sm text-foreground leading-relaxed">{reflection}</p>
               ) : (
-                <p className="text-sm text-gray-600 italic">
+                <p className="text-sm text-muted-foreground italic">
                   No reflection available. Try refreshing the page.
                 </p>
               )}
@@ -195,7 +195,7 @@ export default function CheckInHistoryPage() {
           {checkIns.length === 0 ? (
             <Card>
               <CardContent className="pt-6 text-center">
-                <p className="text-gray-600 mb-4">No check-ins yet. Start tracking your progress!</p>
+                <p className="text-muted-foreground mb-4">No check-ins yet. Start tracking your progress!</p>
                 <CheckInModal userId={user.id} />
               </CardContent>
             </Card>
@@ -205,7 +205,7 @@ export default function CheckInHistoryPage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-gray-500" />
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
                       <CardTitle className="text-base">
                         {new Date(checkIn.createdAt).toLocaleDateString("en-US", {
                           weekday: "short",
@@ -229,19 +229,18 @@ export default function CheckInHistoryPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {checkIn.responses.map((response, idx) => (
                         <div key={idx} className="flex justify-between items-center text-sm">
-                          <span className="text-gray-600 capitalize">
+                          <span className="text-muted-foreground capitalize">
                             {response.category}
                           </span>
                           <div className="flex items-center gap-2">
-                            <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div className="w-24 h-2 bg-section rounded-full overflow-hidden">
                               <div
-                                className={`h-full ${
-                                  response.response <= 3
-                                    ? "bg-green-500"
+                                className={`h-full ${response.response <= 3
+                                    ? "bg-success"
                                     : response.response <= 6
-                                    ? "bg-yellow-500"
-                                    : "bg-red-500"
-                                }`}
+                                      ? "bg-warning"
+                                      : "bg-panic"
+                                  }`}
                                 style={{ width: `${(response.response / 10) * 100}%` }}
                               />
                             </div>
@@ -255,9 +254,9 @@ export default function CheckInHistoryPage() {
 
                     {/* Notes */}
                     {checkIn.notes && (
-                      <div className="flex gap-2 mt-3 p-3 bg-gray-50 rounded-lg">
-                        <StickyNote className="h-4 w-4 text-gray-500 flex-shrink-0 mt-0.5" />
-                        <p className="text-sm text-gray-700">{checkIn.notes}</p>
+                      <div className="flex gap-2 mt-3 p-3 bg-containerBg rounded-lg">
+                        <StickyNote className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                        <p className="text-sm text-foreground">{checkIn.notes}</p>
                       </div>
                     )}
                   </div>
@@ -269,9 +268,9 @@ export default function CheckInHistoryPage() {
 
         {/* Info Card */}
         {checkIns.length < 2 && checkIns.length > 0 && (
-          <Card className="border-amber-200 bg-amber-50">
+          <Card className="border-warning/30 bg-warning/10">
             <CardContent className="pt-6">
-              <p className="text-sm text-amber-800">
+              <p className="text-sm text-warning">
                 <strong>💡 Tip:</strong> Complete at least 2 check-ins to unlock AI trend analysis and personalized reflections!
               </p>
             </CardContent>

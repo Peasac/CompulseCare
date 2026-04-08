@@ -20,14 +20,14 @@ interface MoodEntry {
 }
 
 const MOOD_OPTIONS = [
-  { emoji: "🌟", label: "Happy", color: "bg-green-100/50 hover:bg-green-100 border-green-200" },
-  { emoji: "🫧", label: "Calm", color: "bg-blue-100/50 hover:bg-blue-100 border-blue-200" },
-  { emoji: "😶", label: "Neutral", color: "bg-gray-100/50 hover:bg-gray-100 border-gray-200" },
-  { emoji: "😵‍💫", label: "Anxious", color: "bg-yellow-100/50 hover:bg-yellow-100 border-yellow-200" },
-  { emoji: "💔", label: "Sad", color: "bg-purple-100/50 hover:bg-purple-100 border-purple-200" },
-  { emoji: "💢", label: "Frustrated", color: "bg-orange-100/50 hover:bg-orange-100 border-orange-200" },
-  { emoji: "😮‍💨", label: "Stressed", color: "bg-red-100/50 hover:bg-red-100 border-red-200" },
-  { emoji: "🛌", label: "Tired", color: "bg-indigo-100/50 hover:bg-indigo-100 border-indigo-200" },
+  { emoji: "🌟", label: "Happy", color: "bg-success/10 hover:bg-success/20 border-success/30" },
+  { emoji: "🫧", label: "Calm", color: "bg-info/10 hover:bg-info/20 border-info/30" },
+  { emoji: "😶", label: "Neutral", color: "bg-section hover:bg-containerBg border-border" },
+  { emoji: "😵‍💫", label: "Anxious", color: "bg-warning/10 hover:bg-warning/20 border-warning/30" },
+  { emoji: "💔", label: "Sad", color: "bg-primary/10 hover:bg-primary/20 border-primary/30" },
+  { emoji: "💢", label: "Frustrated", color: "bg-warning/10 hover:bg-warning/20 border-warning/30" },
+  { emoji: "😮‍💨", label: "Stressed", color: "bg-panic/10 hover:bg-panic/20 border-panic/30" },
+  { emoji: "🛌", label: "Tired", color: "bg-card hover:bg-section border-border" },
 ];
 
 /**
@@ -156,9 +156,9 @@ const MoodTrackerPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F6FA]">
+    <div className="min-h-screen bg-background">
       {/* Page Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+      <header className="bg-card border-b border-border shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 max-w-2xl">
           <div className="flex items-center gap-4">
             <Button
@@ -166,13 +166,13 @@ const MoodTrackerPage = () => {
               size="icon"
               onClick={() => router.push("/")}
               aria-label="Go back"
-              className="hover:bg-gray-100 rounded-full"
+              className="hover:bg-containerBg rounded-full"
             >
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
+              <ArrowLeft className="w-5 h-5 text-muted-foreground" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold text-gray-800">Mood Tracker</h1>
-              <p className="text-sm text-gray-500">How are you feeling?</p>
+              <h1 className="text-xl font-bold text-foreground">Mood Tracker</h1>
+              <p className="text-sm text-muted-foreground">How are you feeling?</p>
             </div>
           </div>
         </div>
@@ -180,10 +180,10 @@ const MoodTrackerPage = () => {
 
       <main className="container mx-auto px-4 py-6 max-w-2xl space-y-8">
         {/* SECTION 1: Mood Selection */}
-        <Card className="p-6 shadow-soft bg-white border-gray-100">
+        <Card className="p-6 shadow-soft bg-card border-border">
           <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-1">Select your mood</h2>
-            <p className="text-sm text-gray-500">Tap to select</p>
+            <h2 className="text-lg font-semibold text-foreground mb-1">Select your mood</h2>
+            <p className="text-sm text-muted-foreground">Tap to select</p>
           </div>
 
           {/* Emoji Selection Grid */}
@@ -195,7 +195,7 @@ const MoodTrackerPage = () => {
                 className={`
                   ${mood.color} border
                   ${selectedMood === mood.emoji
-                    ? "ring-2 ring-blue-400 ring-offset-2 scale-105 shadow-md bg-white"
+                    ? "ring-2 ring-primary ring-offset-2 scale-105 shadow-md bg-card"
                     : "shadow-sm"}
                   rounded-2xl p-4 flex flex-col items-center gap-2 
                   transition-all duration-300 ease-out
@@ -207,7 +207,7 @@ const MoodTrackerPage = () => {
                 <span className={`text-3xl transition-transform duration-300 ${selectedMood === mood.emoji ? "animate-bounce" : "group-hover:scale-110"}`}>
                   {mood.emoji}
                 </span>
-                <span className="text-xs font-semibold text-gray-700">
+                <span className="text-xs font-semibold text-foreground">
                   {mood.label}
                 </span>
               </button>
@@ -218,9 +218,9 @@ const MoodTrackerPage = () => {
         {/* SECTION 2: Intensity & Notes (appears after selection) */}
         {selectedMood && (
           <div className="animate-fade-in space-y-6">
-            <Card className="p-6 shadow-soft bg-white border-gray-100">
-              <h3 className="text-base font-semibold text-gray-800 mb-5 flex items-center gap-2">
-                <Flame className="w-4 h-4 text-orange-500" />
+            <Card className="p-6 shadow-soft bg-card border-border">
+              <h3 className="text-base font-semibold text-foreground mb-5 flex items-center gap-2">
+                <Flame className="w-4 h-4 text-warning" />
                 Intensity Level
               </h3>
 
@@ -228,10 +228,10 @@ const MoodTrackerPage = () => {
               <div className="mb-8 px-2">
                 <div className="flex items-center justify-between mb-8">
                   <div className="text-center">
-                    <span className="block text-2xl font-bold text-gray-800">{intensity[0]}</span>
-                    <span className="text-xs text-gray-500 uppercase tracking-wide">Level</span>
+                    <span className="block text-2xl font-bold text-foreground">{intensity[0]}</span>
+                    <span className="text-xs text-muted-foreground uppercase tracking-wide">Level</span>
                   </div>
-                  <div className="text-sm text-gray-500 font-medium">
+                  <div className="text-sm text-muted-foreground font-medium">
                     {intensity[0] <= 3 ? "Mild" : intensity[0] <= 7 ? "Moderate" : "Intense"}
                   </div>
                 </div>
@@ -244,7 +244,7 @@ const MoodTrackerPage = () => {
                   step={1}
                   className="py-4"
                 />
-                <div className="flex justify-between mt-2 text-xs text-gray-400 font-medium uppercase tracking-wide">
+                <div className="flex justify-between mt-2 text-xs text-muted-foreground font-medium uppercase tracking-wide">
                   <span>Low</span>
                   <span>High</span>
                 </div>
@@ -252,8 +252,8 @@ const MoodTrackerPage = () => {
 
               {/* Optional Note */}
               <div>
-                <label htmlFor="moodNote" className="block text-sm font-semibold text-gray-700 mb-3">
-                  Check-in Note <span className="text-gray-400 font-normal ml-1">(Optional)</span>
+                <label htmlFor="moodNote" className="block text-sm font-semibold text-foreground mb-3">
+                  Check-in Note <span className="text-muted-foreground font-normal ml-1">(Optional)</span>
                 </label>
                 <Textarea
                   id="moodNote"
@@ -261,10 +261,10 @@ const MoodTrackerPage = () => {
                   onChange={(e) => setNote(e.target.value)}
                   maxLength={200}
                   placeholder="What's going on right now? Triggers, thoughts, or wins..."
-                  className="resize-none h-24 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+                  className="resize-none h-24 bg-section border-border focus:bg-card transition-colors"
                 />
                 <div className="flex justify-end mt-2">
-                  <span className="text-xs text-gray-400">{note.length}/200</span>
+                  <span className="text-xs text-muted-foreground">{note.length}/200</span>
                 </div>
               </div>
             </Card>
@@ -273,7 +273,7 @@ const MoodTrackerPage = () => {
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 rounded-xl text-base font-semibold shadow-lg hover:shadow-xl hover:translate-y-[-1px] transition-all duration-300"
+              className="w-full bg-primary hover:bg-primary/90 text-background h-12 rounded-xl text-base font-semibold shadow-lg hover:shadow-xl hover:translate-y-[-1px] transition-all duration-300"
             >
               {isSubmitting ? (
                 <>
@@ -291,63 +291,63 @@ const MoodTrackerPage = () => {
         )}
 
         {/* SECTION 4: Mood History */}
-        <div className="pt-6 border-t border-gray-200">
+        <div className="pt-6 border-t border-border">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-gray-400" />
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <Clock className="w-5 h-5 text-muted-foreground" />
               Recent History
             </h2>
-            <Button variant="ghost" size="sm" className="text-xs text-blue-600 hover:bg-blue-50">
+            <Button variant="ghost" size="sm" className="text-xs text-info hover:bg-info/10">
               View All
             </Button>
           </div>
 
           {isLoadingHistory ? (
             <div className="flex justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+              <Loader2 className="w-8 h-8 animate-spin text-info" />
             </div>
           ) : moodHistory.length === 0 ? (
-            <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+            <div className="text-center py-12 bg-section rounded-xl border border-dashed border-border">
               <div className="text-4xl mb-3 grayscale opacity-50">📅</div>
-              <p className="text-gray-500 text-sm font-medium">No mood logs yet.</p>
-              <p className="text-gray-400 text-xs mt-1">Start tracking to see trends!</p>
+              <p className="text-muted-foreground text-sm font-medium">No mood logs yet.</p>
+              <p className="text-muted-foreground text-xs mt-1">Start tracking to see trends!</p>
             </div>
           ) : (
             <div className="space-y-4">
               {moodHistory.map((entry, idx) => (
                 <div
                   key={entry.id}
-                  className="relative pl-6 pb-6 last:pb-0 border-l border-gray-200 ml-3"
+                  className="relative pl-6 pb-6 last:pb-0 border-l border-border ml-3"
                 >
                   {/* Timeline Dot */}
-                  <div className="absolute left-[-5px] top-1 w-2.5 h-2.5 rounded-full bg-blue-200 border-2 border-white shadow-sm ring-1 ring-blue-50 z-10"></div>
+                  <div className="absolute left-[-5px] top-1 w-2.5 h-2.5 rounded-full bg-info border-2 border-background shadow-sm ring-1 ring-info/20 z-10"></div>
 
-                  <Card className="p-4 shadow-sm hover:shadow-md transition-shadow bg-white border-gray-100 ml-2">
+                  <Card className="p-4 shadow-sm hover:shadow-md transition-shadow bg-card border-border ml-2">
                     <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 bg-gray-50 rounded-full w-12 h-12 flex items-center justify-center text-2xl shadow-inner">
+                      <div className="flex-shrink-0 bg-section rounded-full w-12 h-12 flex items-center justify-center text-2xl shadow-inner">
                         {entry.emoji}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                             Intensity {entry.intensity}/10
                           </span>
-                          <span className="text-[10px] text-gray-400">
+                          <span className="text-[10px] text-muted-foreground">
                             {formatDistanceToNow(new Date(entry.timestamp), { addSuffix: true })}
                           </span>
                         </div>
 
                         {/* Intensity Bar */}
-                        <div className="h-1.5 w-full bg-gray-100 rounded-full mb-3 overflow-hidden">
+                        <div className="h-1.5 w-full bg-section rounded-full mb-3 overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${entry.intensity <= 3 ? 'bg-blue-400' : entry.intensity <= 7 ? 'bg-orange-400' : 'bg-red-400'
+                            className={`h-full rounded-full ${entry.intensity <= 3 ? 'bg-success' : entry.intensity <= 7 ? 'bg-warning' : 'bg-panic'
                               }`}
                             style={{ width: `${(entry.intensity / 10) * 100}%` }}
                           />
                         </div>
 
                         {entry.note && (
-                          <p className="text-sm text-gray-700 leading-relaxed bg-gray-50/50 p-2 rounded-lg border border-gray-100/50">
+                          <p className="text-sm text-foreground leading-relaxed bg-containerBg p-2 rounded-lg border border-border/50">
                             "{entry.note}"
                           </p>
                         )}

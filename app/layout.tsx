@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Manrope } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import Navigation from "@/components/Navigation";
 
-const inter = Inter({ subsets: ["latin"] });
+const manrope = Manrope({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "CompulseCare - OCD & Compulsion Tracking",
@@ -26,10 +27,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-gray-50`}>
+      <body className={`${manrope.className} bg-background`}>
         <ErrorBoundary>
           <AuthProvider>
-            {children}
+            <div className="flex min-h-screen bg-background">
+              <Navigation />
+              <main className="flex-1 overflow-y-auto">
+                {children}
+              </main>
+            </div>
             <Toaster />
           </AuthProvider>
         </ErrorBoundary>

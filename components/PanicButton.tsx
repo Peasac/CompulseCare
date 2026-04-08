@@ -31,11 +31,11 @@ const PanicButton = ({ onPanicClick }: PanicButtonProps) => {
           md:w-80 md:h-80 
           lg:w-96 lg:h-96
           rounded-full 
-          bg-rose-400
-          hover:bg-rose-500
-          text-white
-          shadow-2xl 
-          hover:shadow-3xl
+          bg-panic
+          hover:bg-panic/90
+          text-panic-foreground
+          shadow-soft-lg 
+          hover:shadow-soft-xl
           transition-all 
           duration-300 
           flex 
@@ -43,8 +43,6 @@ const PanicButton = ({ onPanicClick }: PanicButtonProps) => {
           items-center 
           justify-center 
           gap-2 
-          border-4
-          border-white/20
           group
           active:scale-95
         "
@@ -62,7 +60,7 @@ const PanicButton = ({ onPanicClick }: PanicButtonProps) => {
 
       {/* Pulsing glow effect */}
       <div
-        className="absolute inset-0 rounded-full bg-rose-400 opacity-20 -z-10 blur-2xl"
+        className="absolute inset-0 rounded-full bg-panic opacity-20 -z-10 blur-2xl"
         style={{
           animation: "pulse 3s ease-in-out infinite",
         }}

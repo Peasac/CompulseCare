@@ -110,10 +110,10 @@ export default function DashboardPage() {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen bg-[#F5F6FA] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -121,7 +121,7 @@ export default function DashboardPage() {
 
   return (
 
-    <div className="min-h-screen bg-[#F5F6FA] flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <Header userName={user.name || undefined} showExport={true} userId={user.id} />
 
@@ -143,12 +143,12 @@ export default function DashboardPage() {
           {/* Right Column - Targets with Segmented Toggle */}
           <div className="lg:col-span-1 space-y-4">
             {/* Segmented Toggle - Reduced Visual Noise */}
-            <div className="flex bg-gray-100/50 p-1 rounded-xl w-full max-w-[280px] mx-auto mb-2 border border-gray-200/50">
+            <div className="flex bg-containerBg p-1 rounded-xl w-full max-w-[280px] mx-auto mb-2 border border-border/50">
               <button
                 onClick={() => setTargetView('daily')}
                 className={`flex-1 text-xs font-semibold py-2 rounded-lg transition-all duration-300 ${targetView === 'daily'
-                  ? 'bg-white text-gray-800 shadow-sm transform scale-105'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-card text-foreground shadow-soft transform scale-105'
+                  : 'text-muted-foreground hover:text-foreground'
                   }`}
               >
                 Daily
@@ -156,8 +156,8 @@ export default function DashboardPage() {
               <button
                 onClick={() => setTargetView('weekly')}
                 className={`flex-1 text-xs font-semibold py-2 rounded-lg transition-all duration-300 ${targetView === 'weekly'
-                  ? 'bg-white text-gray-800 shadow-sm transform scale-105'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-card text-foreground shadow-soft transform scale-105'
+                  : 'text-muted-foreground hover:text-foreground'
                   }`}
               >
                 Weekly
@@ -197,13 +197,13 @@ export default function DashboardPage() {
         {/* Analytics + Weekly Summary Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-12">
           {/* Analytics Card */}
-          <Card className="p-6 bg-white/80 backdrop-blur-sm shadow-soft border-white/50 hover-lift cursor-pointer group" onClick={() => router.push("/summary")}>
+          <Card className="p-6 bg-card/80 backdrop-blur-sm shadow-soft border-card/50 hover-lift cursor-pointer group" onClick={() => router.push("/summary")}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="font-medium text-base text-gray-700 group-hover:text-primary transition-colors">Your Progress</h3>
+              <h3 className="font-medium text-base text-foreground group-hover:text-primary transition-colors">Your Progress</h3>
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-400 hover:text-primary text-xs bg-gray-50 hover:bg-white border border-transparent hover:border-gray-100"
+                className="text-muted-foreground hover:text-primary text-xs bg-containerBg hover:bg-card border border-transparent hover:border-border"
               >
                 Details →
               </Button>
@@ -211,36 +211,36 @@ export default function DashboardPage() {
 
             {loading ? (
               <div className="space-y-5">
-                <div className="h-16 bg-gray-100/50 rounded-xl animate-pulse" />
-                <div className="h-16 bg-gray-100/50 rounded-xl animate-pulse" />
-                <div className="h-16 bg-gray-100/50 rounded-xl animate-pulse" />
+                <div className="h-16 bg-section rounded-xl animate-pulse" />
+                <div className="h-16 bg-section rounded-xl animate-pulse" />
+                <div className="h-16 bg-section rounded-xl animate-pulse" />
               </div>
             ) : error || !dashboardData ? (
-              <div className="text-center py-8 text-gray-400">
+              <div className="text-center py-8 text-muted-foreground">
                 <p className="text-sm">Failed to load progress</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {/* Avg Anxiety */}
-                <div className="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-100/50 hover:bg-white transition-calm">
-                  <span className="text-sm text-gray-500 font-medium">Avg Anxiety</span>
+                <div className="flex items-center justify-between p-4 bg-containerBg/50 rounded-xl border border-border/50 hover:bg-card transition-calm">
+                  <span className="text-sm text-muted-foreground font-medium">Avg Anxiety</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-xl font-semibold text-gray-800">
+                    <span className="text-xl font-semibold text-foreground">
                       {dashboardData.progress.avgAnxiety || 0}
                     </span>
-                    <span className="text-xs text-gray-400">/10</span>
+                    <span className="text-xs text-muted-foreground">/10</span>
                   </div>
                 </div>
 
                 {/* Total Compulsions */}
-                <div className="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-100/50 hover:bg-white transition-calm">
-                  <span className="text-sm text-gray-500 font-medium">Total Compulsions</span>
+                <div className="flex items-center justify-between p-4 bg-containerBg/50 rounded-xl border border-border/50 hover:bg-card transition-calm">
+                  <span className="text-sm text-muted-foreground font-medium">Total Compulsions</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-xl font-semibold text-gray-800">
+                    <span className="text-xl font-semibold text-foreground">
                       {dashboardData.progress.totalCompulsions}
                     </span>
                     {dashboardData.progress.compulsionChange !== 0 && (
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${dashboardData.progress.compulsionChange < 0 ? 'bg-green-100 text-green-700' : 'bg-rose-100 text-rose-700'}`}>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${dashboardData.progress.compulsionChange < 0 ? 'bg-success/20 text-success' : 'bg-panic/20 text-panic'}`}>
                         {dashboardData.progress.compulsionChange > 0 ? '↑' : '↓'} {Math.abs(dashboardData.progress.compulsionChange)}%
                       </span>
                     )}
@@ -248,9 +248,9 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Pause Sessions */}
-                <div className="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-100/50 hover:bg-white transition-calm">
-                  <span className="text-sm text-gray-500 font-medium">Pause Sessions</span>
-                  <span className="text-xl font-semibold text-gray-800">
+                <div className="flex items-center justify-between p-4 bg-containerBg/50 rounded-xl border border-border/50 hover:bg-card transition-calm">
+                  <span className="text-sm text-muted-foreground font-medium">Pause Sessions</span>
+                  <span className="text-xl font-semibold text-foreground">
                     {dashboardData.progress.pauseSessions}
                   </span>
                 </div>
@@ -259,16 +259,16 @@ export default function DashboardPage() {
           </Card>
 
           {/* AI Snapshot Card */}
-          <Card className="p-6 bg-gradient-to-br from-white to-blue-50/30 shadow-soft border-blue-100/50 hover-lift cursor-pointer group" onClick={() => router.push("/summary")}>
+          <Card className="p-6 bg-gradient-to-br from-card to-info/10 shadow-soft border-info/30 hover-lift cursor-pointer group" onClick={() => router.push("/summary")}>
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
-                <h3 className="font-medium text-base text-gray-700 group-hover:text-primary transition-colors">What we noticed this week</h3>
-                <span className="text-[10px] font-semibold text-blue-600 bg-blue-100/50 px-2 py-0.5 rounded-full border border-blue-100">AI</span>
+                <h3 className="font-medium text-base text-foreground group-hover:text-primary transition-colors">What we noticed this week</h3>
+                <span className="text-[10px] font-semibold text-info bg-info/20 px-2 py-0.5 rounded-full border border-info/30">AI</span>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-400 hover:text-primary text-xs bg-white/50 hover:bg-white border border-transparent hover:border-blue-100"
+                className="text-muted-foreground hover:text-primary text-xs bg-card/50 hover:bg-card border border-transparent hover:border-info/50"
               >
                 Details →
               </Button>
@@ -278,53 +278,53 @@ export default function DashboardPage() {
               <div>
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="h-20 bg-gray-100/50 rounded-xl animate-pulse" />
+                    <div key={i} className="h-20 bg-section rounded-xl animate-pulse" />
                   ))}
                 </div>
-                <div className="h-24 bg-blue-50/50 rounded-xl animate-pulse" />
+                <div className="h-24 bg-info/10 rounded-xl animate-pulse" />
               </div>
             ) : error || !dashboardData ? (
-              <div className="text-center py-8 text-gray-400">
+              <div className="text-center py-8 text-muted-foreground">
                 <p className="text-sm">Failed to load insights</p>
               </div>
             ) : (
               <>
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 gap-3 mb-6">
-                  <div className="p-4 bg-white/60 rounded-xl border border-gray-100 hover:border-blue-100 transition-calm">
-                    <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Sessions</p>
-                    <span className="text-xl font-semibold text-gray-800">
+                  <div className="p-4 bg-card/60 rounded-xl border border-border hover:border-info/50 transition-calm">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Sessions</p>
+                    <span className="text-xl font-semibold text-foreground">
                       {dashboardData.aiSnapshot.sessions}
                     </span>
                   </div>
-                  <div className="p-4 bg-white/60 rounded-xl border border-gray-100 hover:border-blue-100 transition-calm">
-                    <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Completion</p>
-                    <span className="text-xl font-semibold text-gray-800">
+                  <div className="p-4 bg-card/60 rounded-xl border border-border hover:border-info/50 transition-calm">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Completion</p>
+                    <span className="text-xl font-semibold text-foreground">
                       {dashboardData.aiSnapshot.completion}%
                     </span>
                   </div>
-                  <div className="p-4 bg-white/60 rounded-xl border border-gray-100 hover:border-blue-100 transition-calm">
-                    <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Avg Anxiety</p>
-                    <span className="text-xl font-semibold text-gray-800">
-                      {dashboardData.aiSnapshot.avgAnxiety}<span className="text-sm text-gray-400 font-normal">/10</span>
+                  <div className="p-4 bg-card/60 rounded-xl border border-border hover:border-info/50 transition-calm">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Avg Anxiety</p>
+                    <span className="text-xl font-semibold text-foreground">
+                      {dashboardData.aiSnapshot.avgAnxiety}<span className="text-sm text-muted-foreground font-normal">/10</span>
                     </span>
                   </div>
-                  <div className="p-4 bg-white/60 rounded-xl border border-gray-100 hover:border-blue-100 transition-calm">
-                    <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Journals</p>
-                    <span className="text-xl font-semibold text-gray-800">
+                  <div className="p-4 bg-card/60 rounded-xl border border-border hover:border-info/50 transition-calm">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Journals</p>
+                    <span className="text-xl font-semibold text-foreground">
                       {dashboardData.aiSnapshot.journals}
                     </span>
                   </div>
                 </div>
 
                 {/* AI-Generated Pattern Insight */}
-                <div className="relative p-5 bg-blue-50/40 rounded-xl border border-blue-100">
+                <div className="relative p-5 bg-info/10 rounded-xl border border-info/30">
                   <div className="absolute top-3 right-3">
-                    <span className="text-[10px] font-medium text-blue-600 bg-white px-2 py-0.5 rounded-full border border-blue-100 shadow-sm">High Confidence</span>
+                    <span className="text-[10px] font-medium text-info bg-card px-2 py-0.5 rounded-full border border-info/30 shadow-sm">High Confidence</span>
                   </div>
                   <div className="flex gap-3">
                     <span className="text-xl mt-0.5">💡</span>
-                    <p className="text-sm text-gray-700 leading-relaxed font-medium pt-1 animate-fade-in">
+                    <p className="text-sm text-foreground leading-relaxed font-medium pt-1 animate-fade-in">
                       {dashboardData.aiSnapshot.insight.split('.')[0]}.
                     </p>
                   </div>
@@ -335,16 +335,16 @@ export default function DashboardPage() {
         </div>
 
         {/* Mood Tracker Section - Passive Display Only */}
-        <Card className="p-6 bg-white shadow-soft border-gray-100 mt-8 hover-lift cursor-pointer" onClick={() => router.push("/mood")}>
+        <Card className="p-6 bg-card shadow-soft border-border mt-8 hover-lift cursor-pointer" onClick={() => router.push("/mood")}>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <span className="text-2xl">🌟</span>
-              <h3 className="font-medium text-base text-gray-700">Emotional Check-In</h3>
+              <h3 className="font-medium text-base text-foreground">Emotional Check-In</h3>
             </div>
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-500 hover:text-gray-700 text-xs"
+              className="text-muted-foreground hover:text-foreground text-xs"
             >
               Track →
             </Button>
@@ -363,20 +363,20 @@ export default function DashboardPage() {
             <div className="space-y-4">
               {/* Current Mood Display - Compact */}
               {dashboardData.mood.current ? (
-                <div className="p-3 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+                <div className="p-3 bg-gradient-to-br from-info/10 to-primary/10 rounded-lg border border-info/30">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-2xl">{dashboardData.mood.current.emoji}</span>
                       <div>
-                        <p className="text-sm font-medium text-gray-800">{dashboardData.mood.current.label}</p>
-                        <p className="text-xs text-gray-500">Current mood</p>
+                        <p className="text-sm font-medium text-foreground">{dashboardData.mood.current.label}</p>
+                        <p className="text-xs text-muted-foreground">Current mood</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="text-xl font-semibold text-gray-800">
+                      <span className="text-xl font-semibold text-foreground">
                         {dashboardData.mood.current.intensity}
                       </span>
-                      <span className="text-xs text-gray-500">/10</span>
+                      <span className="text-xs text-muted-foreground">/10</span>
                     </div>
                   </div>
                 </div>
@@ -388,15 +388,15 @@ export default function DashboardPage() {
 
               {/* Weekly Mood Strip - Compact */}
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">This Week</p>
+                <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">This Week</p>
                 <div className="grid grid-cols-7 gap-1.5">
                   {dashboardData.mood.weeklyStrip.map((mood, idx) => (
                     <div
                       key={idx}
-                      className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-md border border-gray-100 hover:bg-gray-100 transition-calm"
+                      className="flex flex-col items-center justify-center p-2 bg-containerBg rounded-md border border-border hover:bg-section transition-calm"
                     >
                       <span className="text-2xl mb-1">{mood.emoji}</span>
-                      <span className="text-[10px] text-gray-400 font-medium">{mood.day}</span>
+                      <span className="text-[10px] text-muted-foreground font-medium">{mood.day}</span>
                     </div>
                   ))}
                 </div>
@@ -404,21 +404,21 @@ export default function DashboardPage() {
 
               {/* Mood Stats */}
               <div className="grid grid-cols-3 gap-2">
-                <div className="p-2 bg-gray-50 rounded-md border border-gray-100 text-center">
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wide">Streak</p>
-                  <p className="text-sm font-semibold text-gray-700 mt-0.5">
+                <div className="p-2 bg-containerBg rounded-md border border-border text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Streak</p>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">
                     {dashboardData.mood.stats.streak}d
                   </p>
                 </div>
-                <div className="p-2 bg-gray-50 rounded-md border border-gray-100 text-center">
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wide">Avg</p>
-                  <p className="text-sm font-semibold text-gray-700 mt-0.5">
+                <div className="p-2 bg-containerBg rounded-md border border-border text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Avg</p>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">
                     {dashboardData.mood.stats.avgThisWeek}
                   </p>
                 </div>
-                <div className="p-2 bg-gray-50 rounded-md border border-gray-100 text-center">
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wide">Logged</p>
-                  <p className="text-sm font-semibold text-gray-700 mt-0.5">
+                <div className="p-2 bg-containerBg rounded-md border border-border text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Logged</p>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">
                     {dashboardData.mood.stats.totalEntries}
                   </p>
                 </div>
@@ -426,8 +426,8 @@ export default function DashboardPage() {
 
               {/* Correlation Hint */}
               {dashboardData.mood.correlationHint && (
-                <div className="p-2 bg-blue-50/50 rounded-md border border-blue-100">
-                  <p className="text-xs text-gray-600">{dashboardData.mood.correlationHint}</p>
+                <div className="p-2 bg-info/10 rounded-md border border-info/30">
+                  <p className="text-xs text-muted-foreground">{dashboardData.mood.correlationHint}</p>
                 </div>
               )}
             </div>

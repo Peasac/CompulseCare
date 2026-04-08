@@ -147,9 +147,9 @@ const JournalPage = () => {
   const maxNoteLength = 140;
 
   return (
-    <div className="min-h-screen bg-[#F5F6FA]">
+    <div className="min-h-screen bg-background">
       {/* Page Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+      <header className="bg-card border-b border-border shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 max-w-2xl">
           <div className="flex items-center gap-4">
             <Button
@@ -161,8 +161,8 @@ const JournalPage = () => {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold text-gray-800">Compulsion Journal</h1>
-              <p className="text-sm text-gray-500">Quick micro-journaling (max {charLimit} chars)</p>
+              <h1 className="text-xl font-bold text-foreground">Compulsion Journal</h1>
+              <p className="text-sm text-muted-foreground">Quick micro-journaling (max {charLimit} chars)</p>
             </div>
           </div>
         </div>
@@ -170,15 +170,15 @@ const JournalPage = () => {
 
       <main className="container mx-auto px-4 py-6 max-w-2xl">
         {/* Journal Entry Form */}
-        <Card className="p-6 mb-8 shadow-soft bg-white border-gray-100 hover-lift">
-          <h2 className="text-base font-medium text-gray-700 mb-5">
+        <Card className="p-6 mb-8 shadow-soft bg-card border-border hover-lift">
+          <h2 className="text-base font-medium text-foreground mb-5">
             New Entry
           </h2>
 
           {/* Trigger Selection */}
           <div className="mb-6">
-            <label className="block text-xs font-medium text-gray-500 mb-3 uppercase tracking-wide">
-              What happened? <span className="text-pink-500">*</span>
+            <label className="block text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
+              What happened? <span className="text-panic">*</span>
             </label>
             <div className="flex flex-wrap gap-2">
               {TRIGGER_OPTIONS.map((trigger) => (
@@ -187,8 +187,8 @@ const JournalPage = () => {
                   variant={selectedTriggers.includes(trigger) ? "default" : "outline"}
                   className={`cursor-pointer transition-calm font-medium ${
                     selectedTriggers.includes(trigger)
-                      ? "bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100"
-                      : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                      ? "bg-info/10 border-info/30 text-info hover:bg-info/20"
+                      : "bg-card text-muted-foreground border-border hover:bg-containerBg hover:border-primary/50"
                   }`}
                   onClick={() => toggleTrigger(trigger)}
                 >
@@ -200,7 +200,7 @@ const JournalPage = () => {
 
           {/* Note Input */}
           <div className="mb-6">
-            <label htmlFor="note" className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+            <label htmlFor="note" className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
               Quick note (optional)
             </label>
             <Textarea
@@ -209,11 +209,11 @@ const JournalPage = () => {
               onChange={(e) => setNote(e.target.value)}
               maxLength={charLimit}
               placeholder="How did you feel? What helped?"
-              className="resize-none h-24 bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-blue-300 focus:ring-blue-200 transition-calm"
+              className="resize-none h-24 bg-card border-border text-foreground placeholder:text-placeholder focus:border-primary focus:ring-primary/20 transition-calm"
             />
-            <div className="flex justify-between items-center mt-2 text-xs text-gray-400">
+            <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
               <span>Keep it brief – just what matters</span>
-              <span className={note.length > 120 ? "text-orange-500 font-medium" : "text-gray-400"}>
+              <span className={note.length > 120 ? "text-warning font-medium" : "text-muted-foreground"}>
                 {note.length}/{charLimit}
               </span>
             </div>
@@ -221,7 +221,7 @@ const JournalPage = () => {
 
           {/* Time Spent */}
           <div className="mb-6">
-            <label htmlFor="timeSpent" className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+            <label htmlFor="timeSpent" className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
               Time spent (minutes)
             </label>
             <div className="flex items-center gap-4">
@@ -233,9 +233,9 @@ const JournalPage = () => {
                 step="1"
                 value={timeSpent}
                 onChange={(e) => setTimeSpent(Number(e.target.value))}
-                className="flex-1 h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                className="flex-1 h-2 bg-section rounded-lg appearance-none cursor-pointer accent-primary"
               />
-              <span className="text-base font-medium text-gray-700 min-w-[3rem] text-right">
+              <span className="text-base font-medium text-foreground min-w-[3rem] text-right">
                 {timeSpent}m
               </span>
             </div>
@@ -245,7 +245,7 @@ const JournalPage = () => {
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || selectedTriggers.length === 0}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white h-12 text-base font-medium transition-calm disabled:opacity-50"
+            className="w-full bg-primary hover:bg-primary/90 text-background h-12 text-base font-medium transition-calm disabled:opacity-50"
           >
             {isSubmitting ? (
               <>
@@ -263,17 +263,17 @@ const JournalPage = () => {
 
         {/* Recent Entries */}
         <div>
-          <h2 className="text-base font-medium text-gray-700 mb-4">
+          <h2 className="text-base font-medium text-foreground mb-4">
             Recent Entries
           </h2>
 
           {isLoadingEntries ? (
             <div className="flex justify-center py-8">
-              <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : recentEntries.length === 0 ? (
-            <Card className="p-8 text-center bg-white border-gray-200">
-              <p className="text-gray-500">No entries yet. Start journaling above!</p>
+            <Card className="p-8 text-center bg-card border-border">
+              <p className="text-muted-foreground">No entries yet. Start journaling above!</p>
             </Card>
           ) : (
             <div className="space-y-4">
