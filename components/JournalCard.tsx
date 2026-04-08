@@ -40,10 +40,10 @@ const JournalCard = ({ entry, compact = false }: JournalCardProps) => {
   };
 
   return (
-    <Card className={`${compact ? 'p-4' : 'p-5'} shadow-soft hover:shadow-soft-lg transition-calm bg-white border-gray-100`}>
+    <Card className={`${compact ? 'p-4' : 'p-5'} shadow-soft hover:shadow-soft-lg transition-calm bg-card border-border`}>
       {/* Header with timestamp */}
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2 text-sm text-gray-500">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="w-4 h-4" />
           <span>{formatTimestamp()}</span>
         </div>
@@ -61,7 +61,7 @@ const JournalCard = ({ entry, compact = false }: JournalCardProps) => {
             <Badge
               key={index}
               variant="secondary"
-              className="bg-[#2563EB]/10 text-[#2563EB] hover:bg-[#2563EB]/20"
+              className="bg-primary/10 text-primary hover:bg-primary/20"
             >
               {trigger}
             </Badge>
@@ -71,13 +71,13 @@ const JournalCard = ({ entry, compact = false }: JournalCardProps) => {
 
       {/* Note text */}
       {note && (
-        <p className={`text-gray-700 ${compact ? 'text-sm' : 'text-base'} leading-relaxed mb-3`}>
+        <p className={`text-foreground ${compact ? 'text-sm' : 'text-base'} leading-relaxed mb-3`}>
           {note}
         </p>
       )}
 
       {/* Time spent */}
-      <div className="flex items-center gap-2 text-sm text-gray-500">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Clock className="w-4 h-4" />
         <span>{timeSpent} minute{timeSpent !== 1 ? 's' : ''} spent</span>
       </div>

@@ -82,16 +82,16 @@ const Header = ({ userName, showExport = true, userId }: HeaderProps) => {
   const displayName = user?.name || userName || "User";
 
   return (
-    <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10 shadow-sm">
+    <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10 shadow-sm">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div>
             <Link href="/" className="hover:opacity-80 transition-opacity">
-              <h1 className="text-xl md:text-2xl font-bold text-gray-800">
+              <h1 className="text-xl md:text-2xl font-bold text-foreground">
                 Welcome, {displayName} 👋
               </h1>
             </Link>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               You're doing great. One step at a time.
             </p>
           </div>
@@ -99,7 +99,7 @@ const Header = ({ userName, showExport = true, userId }: HeaderProps) => {
           <div className="flex items-center gap-2">
             {showExport && (
               <Button 
-                className="gap-2 bg-lime-400 hover:bg-lime-500 text-gray-800"
+                className="gap-2 bg-primary hover:bg-primary/90 text-background"
                 onClick={handleExport}
               >
                 <Download className="w-4 h-4" />

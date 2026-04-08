@@ -182,15 +182,15 @@ export default function CheckInModal({ userId }: { userId: string }) {
 
         {checkingToday ? (
           <div className="py-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-4 text-sm text-gray-600">Checking today's check-in...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto"></div>
+            <p className="mt-4 text-sm text-muted-foreground">Checking today's check-in...</p>
           </div>
         ) : alreadyCheckedIn ? (
           <div className="py-8 text-center space-y-4">
-            <div className="text-green-600 text-lg">✓</div>
+            <div className="text-success text-lg">✓</div>
             <div>
-              <p className="font-medium text-gray-900">You've already checked in today!</p>
-              <p className="text-sm text-gray-600 mt-2">Come back tomorrow for your next check-in.</p>
+              <p className="font-medium text-foreground">You've already checked in today!</p>
+              <p className="text-sm text-muted-foreground mt-2">Come back tomorrow for your next check-in.</p>
             </div>
             <Button variant="outline" onClick={() => setOpen(false)}>Close</Button>
           </div>
@@ -236,7 +236,7 @@ export default function CheckInModal({ userId }: { userId: string }) {
 
             {message && (
               <div
-                className={`text-sm ${message.includes("success") ? "text-green-600" : "text-red-600"
+                className={`text-sm ${message.includes("success") ? "text-success" : "text-panic"
                   }`}
               >
                 {message}

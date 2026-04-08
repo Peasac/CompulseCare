@@ -228,7 +228,7 @@ export default function DocumentUploadCard({
           </Label>
           <textarea
             id="ocr-text"
-            className="w-full min-h-[150px] p-3 text-sm border rounded-md resize-y"
+            className="w-full min-h-[150px] p-3 text-sm border border-input rounded-md resize-y bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             placeholder="Text will appear here after OCR processing..."
             value={ocrText}
             onChange={(e) => setOcrText(e.target.value)}
@@ -251,7 +251,7 @@ export default function DocumentUploadCard({
 
         {message && (
           <div
-            className={`text-sm ${message.includes("success") ? "text-green-600" : message.includes("not yet") ? "text-blue-600" : "text-red-600"
+            className={`text-sm ${message.includes("success") ? "text-success" : message.includes("not yet") ? "text-info" : "text-panic"
               }`}
           >
             {message}

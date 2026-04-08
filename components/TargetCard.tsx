@@ -56,47 +56,47 @@ const TargetCard = ({ target, onComplete, onDelete, onPin, compact = false }: Ta
     <Card 
       className={`
         ${compact ? 'p-4' : 'p-5'} 
-        shadow-md 
-        hover:shadow-lg 
-        transition-all
-        ${completed ? 'bg-green-50 border-green-200' : 'bg-white'}
+        shadow-soft 
+        hover:shadow-soft-lg 
+        transition-all border
+        ${completed ? 'bg-success/10 border-success/30' : 'bg-card border-border'}
       `}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className={`font-semibold ${compact ? 'text-sm' : 'text-base'} text-gray-800`}>
+            <h3 className={`font-semibold ${compact ? 'text-sm' : 'text-base'} text-foreground`}>
               {title}
             </h3>
             <Badge 
               variant="outline" 
               className={`text-xs ${
                 type === "daily" 
-                  ? "border-[#2563EB] text-[#2563EB]" 
-                  : "border-[#06B6D4] text-[#06B6D4]"
+                  ? "border-primary text-primary" 
+                  : "border-info text-info"
               }`}
             >
               {type}
             </Badge>
           </div>
           {description && !compact && (
-            <p className="text-sm text-gray-600">{description}</p>
+            <p className="text-sm text-muted-foreground">{description}</p>
           )}
         </div>
         
         <div className="flex items-center gap-2">
           {completed ? (
-            <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
+            <CheckCircle2 className="w-6 h-6 text-success flex-shrink-0" />
           ) : (
             <Button
               variant="ghost"
               size="icon"
               onClick={handleComplete}
-              className="flex-shrink-0 hover:bg-green-100"
+              className="flex-shrink-0 hover:bg-success/20 hover:text-success"
               aria-label="Mark as complete"
             >
-              <Circle className="w-6 h-6 text-gray-400" />
+              <Circle className="w-6 h-6 text-muted-foreground" />
             </Button>
           )}
           {onPin && (
@@ -104,11 +104,11 @@ const TargetCard = ({ target, onComplete, onDelete, onPin, compact = false }: Ta
               variant="ghost"
               size="icon"
               onClick={handlePin}
-              className={`flex-shrink-0 ${pinned ? 'bg-blue-100 hover:bg-blue-200' : 'hover:bg-gray-100'}`}
+              className={`flex-shrink-0 ${pinned ? 'bg-primary/20 hover:bg-primary/30' : 'hover:bg-muted'}`}
               aria-label={pinned ? "Remove from dashboard" : "Show on dashboard"}
               title={pinned ? "Remove from dashboard" : "Show on dashboard"}
             >
-              <Pin className={`w-4 h-4 ${pinned ? 'text-blue-600 fill-blue-600' : 'text-gray-400'}`} />
+              <Pin className={`w-4 h-4 ${pinned ? 'text-primary fill-primary' : 'text-muted-foreground'}`} />
             </Button>
           )}
           {onDelete && (
@@ -116,10 +116,10 @@ const TargetCard = ({ target, onComplete, onDelete, onPin, compact = false }: Ta
               variant="ghost"
               size="icon"
               onClick={handleDelete}
-              className="flex-shrink-0 hover:bg-red-100"
+              className="flex-shrink-0 hover:bg-panic/10 hover:text-panic"
               aria-label="Delete target"
             >
-              <Trash2 className="w-4 h-4 text-red-500" />
+              <Trash2 className="w-4 h-4 text-panic" />
             </Button>
           )}
         </div>
@@ -128,7 +128,7 @@ const TargetCard = ({ target, onComplete, onDelete, onPin, compact = false }: Ta
       {/* Progress Bar */}
       {!completed && (
         <div className="mb-3">
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+          <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
             <span>Progress</span>
             <span className="font-medium">
               {current} / {goal}
@@ -143,7 +143,7 @@ const TargetCard = ({ target, onComplete, onDelete, onPin, compact = false }: Ta
 
       {/* Deadline */}
       {deadline && !completed && (
-        <div className="flex items-center gap-2 text-xs text-gray-500">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Calendar className="w-3 h-3" />
           <span>{deadline}</span>
         </div>
@@ -152,7 +152,7 @@ const TargetCard = ({ target, onComplete, onDelete, onPin, compact = false }: Ta
       {/* Completed Badge */}
       {completed && (
         <div className="mt-2">
-          <Badge className="bg-green-600 text-white hover:bg-green-700">
+          <Badge className="bg-success text-background hover:bg-success/90">
             ✓ Completed
           </Badge>
         </div>

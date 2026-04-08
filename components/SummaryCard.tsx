@@ -22,28 +22,28 @@ interface SummaryCardProps {
  */
 const SummaryCard = ({ title, stats, llmInsight }: SummaryCardProps) => {
   const getTrendIcon = (change?: number) => {
-    if (!change) return <Minus className="w-4 h-4 text-gray-400" />;
-    if (change > 0) return <TrendingUp className="w-4 h-4 text-red-500" />;
-    return <TrendingDown className="w-4 h-4 text-green-500" />;
+    if (!change) return <Minus className="w-4 h-4 text-muted-foreground" />;
+    if (change > 0) return <TrendingUp className="w-4 h-4 text-panic" />;
+    return <TrendingDown className="w-4 h-4 text-success" />;
   };
 
   const getTrendColor = (change?: number) => {
-    if (!change) return "text-gray-600";
-    if (change > 0) return "text-red-600";
-    return "text-green-600";
+    if (!change) return "text-muted-foreground";
+    if (change > 0) return "text-panic";
+    return "text-success";
   };
 
   return (
-    <Card className="p-6 shadow-md">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">{title}</h3>
+    <Card className="p-6 bg-card border-border shadow-soft">
+      <h3 className="text-lg font-semibold text-foreground mb-4">{title}</h3>
 
       {/* Stats Grid */}
       <div className="space-y-4 mb-4">
         {stats.map((stat, index) => (
           <div key={index} className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">{stat.label}</span>
+            <span className="text-sm text-muted-foreground">{stat.label}</span>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-gray-800">
+              <span className="text-xl font-bold text-foreground">
                 {stat.value}
                 {stat.unit && <span className="text-sm font-normal ml-1">{stat.unit}</span>}
               </span>
@@ -62,8 +62,8 @@ const SummaryCard = ({ title, stats, llmInsight }: SummaryCardProps) => {
 
       {/* LLM Insight */}
       {llmInsight && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <p className="text-sm text-gray-700 leading-relaxed italic">
+        <div className="mt-4 pt-4 border-t border-border">
+          <p className="text-sm text-foreground leading-relaxed italic">
             "{llmInsight}"
           </p>
         </div>

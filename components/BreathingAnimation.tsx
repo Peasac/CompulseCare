@@ -12,10 +12,10 @@ const BreathingAnimation = () => {
       {/* Simple CSS-based breathing circle as placeholder */}
       <div className="relative w-48 h-48 md:w-64 md:h-64">
         <div 
-          className="absolute inset-0 rounded-full bg-gradient-to-br from-[#2563EB] to-[#06B6D4] opacity-70 animate-breatheInOut"
+          className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-info opacity-70 animate-breatheInOut"
         />
         <div className="absolute inset-0 flex items-center justify-center">
-          <p className="text-white text-xl md:text-2xl font-semibold text-center">
+          <p className="text-background text-xl md:text-2xl font-semibold text-center">
             Breathe
           </p>
         </div>
@@ -23,10 +23,10 @@ const BreathingAnimation = () => {
       
       {/* Breathing instructions */}
       <div className="mt-8 text-center space-y-2">
-        <p className="text-lg md:text-xl font-medium text-gray-700">
+        <p className="text-lg md:text-xl font-medium text-foreground">
           Follow the circle
         </p>
-        <p className="text-sm md:text-base text-gray-500">
+        <p className="text-sm md:text-base text-muted-foreground">
           Breathe in as it grows, out as it shrinks
         </p>
       </div>

@@ -24,7 +24,7 @@ const Navigation = () => {
   return (
     <>
       {/* Desktop Navigation - Top */}
-      <nav className="hidden md:block border-b border-gray-200 bg-white shadow-sm">
+      <nav className="hidden md:block border-b border-border bg-card shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-center gap-2">
             {navItems.map((item) => {
@@ -37,8 +37,8 @@ const Navigation = () => {
                   href={item.href}
                   className={`flex items-center gap-2 px-4 py-3 transition-colors ${
                     isActive
-                      ? "text-lime-600 border-b-2 border-lime-600"
-                      : "text-gray-600 hover:text-gray-900"
+                      ? "text-primary border-b-2 border-primary"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -51,7 +51,7 @@ const Navigation = () => {
       </nav>
 
       {/* Mobile Navigation - Bottom */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg z-50">
         <div className="flex items-center justify-around px-2 py-2">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -63,8 +63,8 @@ const Navigation = () => {
                 href={item.href}
                 className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors ${
                   isActive
-                    ? "text-lime-600 bg-lime-50"
-                    : "text-gray-600"
+                    ? "text-primary bg-primary/10"
+                    : "text-muted-foreground"
                 }`}
               >
                 <Icon className="w-5 h-5" />

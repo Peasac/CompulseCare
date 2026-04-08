@@ -26,10 +26,10 @@ const StreakBadge = ({ days, size = "md" }: StreakBadgeProps) => {
   };
 
   const getStreakColor = (days: number) => {
-    if (days >= 30) return "bg-gradient-to-r from-purple-600 to-pink-600 text-white";
-    if (days >= 14) return "bg-gradient-to-r from-orange-500 to-red-500 text-white";
-    if (days >= 7) return "bg-blue-500 text-white";
-    return "bg-gradient-to-r from-[#2563EB] to-[#06B6D4] text-white";
+    if (days >= 30) return "bg-gradient-to-r from-secondary to-accent text-background border border-border/50";
+    if (days >= 14) return "bg-gradient-to-r from-warning to-panic text-background border border-border/50";
+    if (days >= 7) return "bg-info text-background border border-border/50";
+    return "bg-gradient-to-r from-primary to-info text-background border border-border/50";
   };
 
   const getStreakMessage = (days: number) => {
@@ -60,7 +60,7 @@ const StreakBadge = ({ days, size = "md" }: StreakBadgeProps) => {
         <Flame className={`${iconSizes[size]} animate-pulse`} />
         <span>{days} day{days !== 1 ? 's' : ''}</span>
       </Badge>
-      <p className="text-xs text-gray-600 font-medium">
+      <p className="text-xs text-muted-foreground font-medium">
         {getStreakMessage(days)}
       </p>
     </div>
