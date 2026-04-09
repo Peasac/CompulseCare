@@ -88,7 +88,7 @@ const Header = ({ userName, showExport = true, userId }: HeaderProps) => {
           <div>
             <Link href="/" className="hover:opacity-80 transition-opacity">
               <h1 className="text-xl md:text-2xl font-bold text-gray-800">
-                Welcome, {displayName} 👋
+                Welcome, {displayName}
               </h1>
             </Link>
             <p className="text-sm text-gray-500">
